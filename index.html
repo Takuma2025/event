@@ -236,7 +236,7 @@
         }
 
         .kuji-item img {
-            max-width: 100px;
+            max-width: 130px;
             height: auto;
             border-radius: 10px;
         }
@@ -325,6 +325,59 @@
             display: none;
             align-items: center;
             justify-content: center;
+        }
+
+        .password-container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .password-title {
+            font-size: 1.2em;
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+
+        .password-input {
+            width: 250px;
+            padding: 12px 15px;
+            font-size: 1.1em;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .password-submit-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto;
+            transition: background 0.3s ease;
+        }
+
+        .password-submit-btn:hover {
+            background: #45a049;
+        }
+
+        .password-error {
+            color: #f56565;
+            font-size: 0.9em;
+            margin-top: 15px;
+            padding: 10px;
+            background: #fed7d7;
+            border-radius: 6px;
+            border: 1px solid #feb2b2;
         }
 
         .admin-content {
@@ -814,7 +867,7 @@
 
         @media (max-width: 768px) {
             .kuji-item img {
-                max-width: 80px;
+                max-width: 110px;
             }
         }
             
@@ -1102,6 +1155,22 @@
         <svg viewBox="0 0 24 24">
             <path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/>
         </svg>
+    </div>
+
+    <!-- パスワード入力画面 -->
+    <div class="admin-panel" id="password-panel">
+        <div class="admin-content">
+            <div class="admin-header">
+                <div class="admin-title">管理画面ログイン</div>
+                <button class="close-btn" onclick="closePasswordPanel()">閉じる</button>
+            </div>
+            <div class="password-container">
+                <div class="password-title">パスワードを入力してください</div>
+                <input type="password" id="admin-password" class="password-input" placeholder="パスワード" maxlength="10">
+                <button class="password-submit-btn" onclick="checkPassword()">ログイン</button>
+                <div id="password-error" class="password-error" style="display: none;">パスワードが間違っています</div>
+            </div>
+        </div>
     </div>
 
     <!-- 管理画面 -->
@@ -2232,8 +2301,8 @@
             
             // コンテナの実際のサイズを取得
             const containerRect = container.getBoundingClientRect();
-            const containerWidth = containerRect.width - 150; // 画像サイズを考慮したマージン
-            const containerHeight = containerRect.height - 150;
+            const containerWidth = containerRect.width - 160; // 画像サイズを考慮したマージン
+            const containerHeight = containerRect.height - 160;
             
             for (let i = 0; i < numKuji; i++) {
                 const kujiItem = document.createElement('div');
@@ -2734,6 +2803,13 @@
                     input.addEventListener('input', updateProbabilityTotal);
                 }
             });
+
+            // パスワード入力でEnterキーを押した時の処理
+            document.getElementById('admin-password').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    checkPassword();
+                }
+            });
         });
 
                 // ウィンドウサイズ変更時にくじを再配置
@@ -2746,14 +2822,48 @@
             }
         });
 
-        // 管理画面を開く
+        // 管理画面を開く（パスワード入力画面を表示）
         function openAdminPanel() {
+            document.getElementById('password-panel').style.display = 'flex';
+            document.getElementById('admin-password').value = '';
+            document.getElementById('password-error').style.display = 'none';
+            
+            // パスワード入力フィールドにフォーカス
+            setTimeout(() => {
+                document.getElementById('admin-password').focus();
+            }, 100);
+        }
+
+        // パスワードをチェック
+        function checkPassword() {
+            const password = document.getElementById('admin-password').value;
+            const errorDiv = document.getElementById('password-error');
+            
+            if (password === '66') {
+                // パスワード正解
+                document.getElementById('password-panel').style.display = 'none';
+                showAdminPanel();
+            } else {
+                // パスワード間違い
+                errorDiv.style.display = 'block';
+                document.getElementById('admin-password').value = '';
+                document.getElementById('admin-password').focus();
+            }
+        }
+
+        // 実際の管理画面を表示
+        function showAdminPanel() {
             document.getElementById('admin-panel').style.display = 'flex';
             loadAdminData();
             
             // 強制リフレッシュで最新データを表示
             forceRefreshAdmin();
             loadProbabilitySettings();
+        }
+
+        // パスワード入力画面を閉じる
+        function closePasswordPanel() {
+            document.getElementById('password-panel').style.display = 'none';
         }
 
         // 管理画面を閉じる
@@ -2869,6 +2979,13 @@
         document.getElementById('admin-panel').addEventListener('click', (e) => {
             if (e.target.id === 'admin-panel') {
                 closeAdminPanel();
+            }
+        });
+
+        // パスワード入力画面の外側をクリックしたら閉じる
+        document.getElementById('password-panel').addEventListener('click', (e) => {
+            if (e.target.id === 'password-panel') {
+                closePasswordPanel();
             }
         });
     </script>
