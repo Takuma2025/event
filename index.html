@@ -70,8 +70,15 @@
             transform: rotate(-20deg);
         }
 
+
+
         /* くじ選び画面では景品画像を非表示 */
         .hide-keihin .keihin-decoration {
+            display: none;
+        }
+
+        /* カウントダウン時は当選者数表示を非表示 */
+        .hide-winner-count .winner-count-title {
             display: none;
         }
 
@@ -102,6 +109,29 @@
             display: block !important;
         }
 
+        .title-content {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: nowrap;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .title-main {
+            max-width: 350px;
+            width: 350px;
+            height: auto;
+            flex-shrink: 0;
+        }
+
+        .kujibox {
+            max-width: 200px;
+            width: 200px;
+            height: auto;
+            flex-shrink: 0;
+        }
+
         .date-display {
             text-align: center;
             color: #666;
@@ -109,6 +139,34 @@
             margin-bottom: 20px;
             font-weight: normal;
         }
+
+        .winner-count-title {
+            text-align: center;
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 20px;
+        }
+
+        #total-winners {
+            font-family: 'Century', 'Times New Roman', serif;
+            font-size: 2.5em;
+            font-weight: 900;
+            color: #e91e63;
+            letter-spacing: 2px;
+            display: inline-block;
+            animation: number-dance 3s ease-in-out infinite;
+        }
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -226,7 +284,7 @@
         .kuji-item {
             position: absolute;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 1s ease;
             filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
         }
 
@@ -234,6 +292,8 @@
             transform: scale(1.2) rotate(5deg);
             filter: drop-shadow(0 8px 16px rgba(0,0,0,0.4));
         }
+
+
 
         .kuji-item img {
             max-width: 130px;
@@ -277,13 +337,13 @@
         }
 
         .winner-info {
-            color: #666;
+            color: #000;
             font-size: 1.4em;
             margin: 20px 0;
             padding: 15px;
-            background: #f0f0f0;
+            background: none;
             border-radius: 10px;
-            border: 2px solid #00d2b8;
+            border: none;
         }
 
         .settings-icon {
@@ -767,6 +827,70 @@
             transform: none;
         }
 
+        .effort-ticket-section {
+            margin-top: 30px;
+            padding-top: 20px;
+        }
+
+        .section-divider {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .section-divider::before,
+        .section-divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 30%;
+            height: 1px;
+            background: #ddd;
+        }
+
+        .section-divider::before {
+            left: 0;
+        }
+
+        .section-divider::after {
+            right: 0;
+        }
+
+        .effort-ticket-btn {
+            background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .effort-ticket-btn:hover {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            transform: translateY(-2px);
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .back-btn:hover {
+            background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+            transform: translateY(-2px);
+        }
+
         .participant-info {
             background: #f0f0f0;
             padding: 10px 20px;
@@ -865,14 +989,55 @@
             }
         }
 
+        @keyframes number-dance {
+            0% { 
+                transform: scale(1) translateY(0) rotate(0deg);
+            }
+            15% { 
+                transform: scale(1.2) translateY(-10px) rotate(5deg);
+            }
+            30% { 
+                transform: scale(0.9) translateY(5px) rotate(-3deg);
+            }
+            45% { 
+                transform: scale(1.1) translateY(-15px) rotate(8deg);
+            }
+            60% { 
+                transform: scale(0.95) translateY(3px) rotate(-5deg);
+            }
+            75% { 
+                transform: scale(1.15) translateY(-8px) rotate(10deg);
+            }
+            90% { 
+                transform: scale(1.05) translateY(2px) rotate(-2deg);
+            }
+            100% { 
+                transform: scale(1) translateY(0) rotate(0deg);
+            }
+        }
+
         @media (max-width: 768px) {
             .kuji-item img {
                 max-width: 110px;
             }
+
+
         }
-            
-            .title img {
-                max-width: 300px;
+
+            .title-content {
+                flex-direction: column;
+                gap: 15px;
+                align-items: center;
+            }
+
+            .title-main {
+                max-width: 280px;
+                width: 280px;
+            }
+
+            .kujibox {
+                max-width: 150px;
+                width: 150px;
             }
 
             .date-display {
@@ -1084,12 +1249,18 @@
         <div class="keihin-decoration keihin-6">
             <img src="keihin6.png" alt="景品6">
         </div>
+
         
         <div class="title">
             <img src="rogo.png" alt="ロゴ" class="logo">
-            <img src="title.png" alt="くじ引きWEBサービス">
+            <div class="title-content">
+                <img src="title.png" alt="くじ引きWEBサービス" class="title-main">
+                <img src="kujibox.png" alt="くじ箱" class="kujibox">
+            </div>
         </div>
         <div class="date-display" id="date-display"></div>
+        
+        <div class="winner-count-title">現在の当選者数: <span id="total-winners">0</span>人</div>
         
         <div id="code-screen" class="code-container">
             <div class="code-title">クラス・コードを入力してください</div>
@@ -1117,6 +1288,21 @@
                 </select>
             </div>
             <button class="code-submit-btn" onclick="submitCode()">くじをひく</button>
+            
+            <div class="effort-ticket-section">
+                <div class="section-divider">または</div>
+                <button class="effort-ticket-btn" onclick="showEffortTicketScreen()">努力券を5枚使ってくじをひく</button>
+            </div>
+        </div>
+
+        <div id="effort-ticket-screen" class="code-container" style="display: none;">
+            <div class="code-title">特別コードを入力してください</div>
+            <div class="code-input-group">
+                <input type="text" id="effort-ticket-code" class="code-input" placeholder="特別コードを入力" maxlength="20">
+            </div>
+            <button class="code-submit-btn" onclick="submitEffortTicketCode()">くじをひく</button>
+            <div id="effort-ticket-error" class="password-error" style="display: none;">コードが間違っています</div>
+            <button class="back-btn" onclick="backToMainScreen()">戻る</button>
         </div>
 
         <div id="kuji-screen" style="display: none;">
@@ -1124,6 +1310,9 @@
             <div class="instruction">お好きなくじを選んでください！</div>
             <div class="kuji-container" id="kuji-container">
                 <!-- くじがJavaScriptで生成されます -->
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="back-btn" onclick="backFromKujiScreen()">戻る</button>
             </div>
         </div>
 
@@ -1365,6 +1554,11 @@
 
         // クラス別抽選結果を決定
         function getResultForParticipant(participantId) {
+            // 特別コードモードの場合は制限なしで全ての等級が当選可能
+            if (isEffortTicketMode) {
+                return drawByProbability();
+            }
+            
             const participantClass = getParticipantClass(participantId);
             const history = getHistory();
             const participant = history[participantId] || { totalCount: 0, dates: [], won5th: false, hasWon: false };
@@ -1393,10 +1587,12 @@
         }
 
         let currentParticipant = null;
+        let isEffortTicketMode = false;
         const MAX_TOTAL_DRAWS = 5;
         const STORAGE_KEY = 'kuji_history';
         const PRIZE_SETTINGS_KEY = 'kuji_prize_settings';
         const PROBABILITY_SETTINGS_KEY = 'kuji_probability_settings';
+        const SPECIAL_CODE = 'Takoyaki66';
 
         // 景品設定のデフォルト値
         const DEFAULT_PRIZE_SETTINGS = {
@@ -2226,7 +2422,7 @@
                     } else {
                         canDrawToday = false;
                         daysToWait = 5 - daysSinceLastDraw;
-                        statusMessage = `あと${daysToWait}日待ってください`;
+                        statusMessage = `あと${daysToWait}日待ってね`;
                     }
                 }
             }
@@ -2239,6 +2435,31 @@
                 statusMessage: statusMessage,
                 daysToWait: daysToWait
             };
+        }
+
+        // 当選者数を集計
+        function getTotalWinnerCount() {
+            const history = getHistory();
+            let totalWinners = 0;
+
+            Object.keys(history).forEach(participantId => {
+                const participant = history[participantId];
+                if (participant.winHistory) {
+                    participant.winHistory.forEach(win => {
+                        if (win.prize !== 'ハズレ') {
+                            totalWinners++;
+                        }
+                    });
+                }
+            });
+
+            return totalWinners;
+        }
+
+        // 当選者数表示を更新
+        function updateWinnerCountDisplay() {
+            const totalWinners = getTotalWinnerCount();
+            document.getElementById('total-winners').textContent = totalWinners;
         }
 
         // 抽選記録を更新
@@ -2293,7 +2514,12 @@
             }
             
             saveHistory(history);
+            
+            // 当選者数表示を更新
+            updateWinnerCountDisplay();
         }
+
+        let shuffleInterval = null;
 
         function generateKuji() {
             const container = document.getElementById('kuji-container');
@@ -2328,12 +2554,58 @@
                 
                 container.appendChild(kujiItem);
             }
+            
+            // 5秒ごとにシャッフル開始
+            startKujiShuffle();
+        }
+
+        function startKujiShuffle() {
+            // 既存のシャッフルがあれば停止
+            if (shuffleInterval) {
+                clearInterval(shuffleInterval);
+            }
+            
+            shuffleInterval = setInterval(() => {
+                shuffleKuji();
+            }, 5000);
+        }
+
+        function shuffleKuji() {
+            const container = document.getElementById('kuji-container');
+            const kujiItems = container.querySelectorAll('.kuji-item');
+            
+            // コンテナサイズを再取得
+            const containerRect = container.getBoundingClientRect();
+            const containerWidth = containerRect.width - 160;
+            const containerHeight = containerRect.height - 160;
+            
+            kujiItems.forEach(kujiItem => {
+                // 新しいランダムな位置
+                const x = Math.random() * Math.max(containerWidth, 100);
+                const y = Math.random() * Math.max(containerHeight, 100);
+                kujiItem.style.left = x + 'px';
+                kujiItem.style.top = y + 'px';
+                
+                // 新しいランダムな回転
+                const rotation = Math.random() * 360;
+                kujiItem.style.transform = `rotate(${rotation}deg)`;
+            });
+        }
+
+        function stopKujiShuffle() {
+            if (shuffleInterval) {
+                clearInterval(shuffleInterval);
+                shuffleInterval = null;
+            }
         }
 
         function showConfirm() {
             // 確認画面を表示
             document.getElementById('kuji-screen').style.display = 'none';
             document.getElementById('confirm-screen').style.display = 'block';
+            
+            // シャッフルを停止
+            stopKujiShuffle();
             
             // 景品画像を再表示
             document.body.classList.remove('hide-keihin');
@@ -2351,6 +2623,9 @@
             // 「いいえ」が選択された場合、くじ選択画面に戻る
             document.getElementById('confirm-screen').style.display = 'none';
             document.getElementById('kuji-screen').style.display = 'block';
+            
+            // シャッフルを再開
+            startKujiShuffle();
             
             // 景品画像を非表示（くじ選び画面に戻るため）
             document.body.classList.add('hide-keihin');
@@ -2478,12 +2753,18 @@
             document.getElementById('confirm-screen').style.display = 'none';
             document.getElementById('drumroll-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'block';
+            
+            // 当選者数表示を再表示
+            document.body.classList.remove('hide-winner-count');
         }
 
         function startDrumroll(result) {
             // 確定演出画面を表示
             document.getElementById('confirm-screen').style.display = 'none';
             document.getElementById('drumroll-screen').style.display = 'block';
+            
+            // 当選者数表示を非表示
+            document.body.classList.add('hide-winner-count');
             
             // 3秒のカウントダウン
             let countdown = 3;
@@ -2564,6 +2845,78 @@
             return canProceed;
         }
 
+        // 特別コード画面を表示
+        function showEffortTicketScreen() {
+            document.getElementById('code-screen').style.display = 'none';
+            document.getElementById('effort-ticket-screen').style.display = 'block';
+            document.getElementById('effort-ticket-code').value = '';
+            document.getElementById('effort-ticket-error').style.display = 'none';
+            
+            // フォーカスを当てる
+            setTimeout(() => {
+                document.getElementById('effort-ticket-code').focus();
+            }, 100);
+        }
+
+        // 特別コードを確認
+        function submitEffortTicketCode() {
+            const code = document.getElementById('effort-ticket-code').value.trim();
+            const errorDiv = document.getElementById('effort-ticket-error');
+            
+            if (code === SPECIAL_CODE) {
+                // コード正解
+                isEffortTicketMode = true;
+                                 currentParticipant = '特別コード利用者';
+                
+                document.getElementById('participant-info').textContent = `参加者: ${currentParticipant}`;
+                
+                // くじ画面に移動
+                document.getElementById('effort-ticket-screen').style.display = 'none';
+                document.getElementById('kuji-screen').style.display = 'block';
+                
+                // 景品画像を非表示
+                document.body.classList.add('hide-keihin');
+                
+                // くじを生成
+                generateKuji();
+            } else {
+                // コード間違い
+                errorDiv.style.display = 'block';
+                document.getElementById('effort-ticket-code').value = '';
+                document.getElementById('effort-ticket-code').focus();
+            }
+        }
+
+        // メイン画面に戻る
+        function backToMainScreen() {
+            document.getElementById('effort-ticket-screen').style.display = 'none';
+            document.getElementById('code-screen').style.display = 'block';
+        }
+
+        // くじ選択画面から戻る
+        function backFromKujiScreen() {
+            // シャッフルを停止
+            stopKujiShuffle();
+            
+            // くじコンテナをクリア
+            document.getElementById('kuji-container').innerHTML = '';
+            
+            // 景品画像を再表示
+            document.body.classList.remove('hide-keihin');
+            
+            // くじ画面を非表示
+            document.getElementById('kuji-screen').style.display = 'none';
+            
+            // 適切な画面に戻る
+            if (isEffortTicketMode) {
+                // 特別コードモードの場合は特別コード画面に戻る
+                document.getElementById('effort-ticket-screen').style.display = 'block';
+            } else {
+                // 通常モードの場合はメイン画面に戻る
+                document.getElementById('code-screen').style.display = 'block';
+            }
+        }
+
         function submitCode() {
             const classSelect = document.getElementById('participant-class');
             const codeSelect = document.getElementById('participant-code');
@@ -2580,6 +2933,8 @@
                 return;
             }
             
+            // 通常モード
+            isEffortTicketMode = false;
             // 参加者情報を保存（クラス・番号の形式）
             currentParticipant = `${selectedClass}・${selectedCode}`;
             
@@ -2686,9 +3041,13 @@
                 existingCelebration.remove();
             }
             
+            // シャッフルを停止
+            stopKujiShuffle();
+            
             // くじ画面をリセット
             document.getElementById('kuji-container').innerHTML = '';
             document.getElementById('code-screen').style.display = 'block';
+            document.getElementById('effort-ticket-screen').style.display = 'none';
             document.getElementById('kuji-screen').style.display = 'none';
             document.getElementById('confirm-screen').style.display = 'none';
             document.getElementById('drumroll-screen').style.display = 'none';
@@ -2696,6 +3055,9 @@
             
             // 景品画像を再表示
             document.body.classList.remove('hide-keihin');
+            
+            // 当選者数表示を再表示
+            document.body.classList.remove('hide-winner-count');
             
             // カウントダウンをリセット
             document.getElementById('countdown-display').textContent = '';
@@ -2705,9 +3067,14 @@
             
             // 参加者情報をリセット
             currentParticipant = null;
+            isEffortTicketMode = false;
             document.getElementById('participant-class').value = '';
             document.getElementById('participant-code').value = '';
             document.getElementById('participant-info').textContent = '';
+            
+            // 特別コード関連もリセット
+            document.getElementById('effort-ticket-code').value = '';
+            document.getElementById('effort-ticket-error').style.display = 'none';
             
             // ステータス表示をリセット
             document.getElementById('draw-counter').style.display = 'none';
@@ -2760,6 +3127,9 @@
             const dateString = `${year}年${month}月${day}日`;
             document.getElementById('date-display').textContent = dateString;
             
+            // 当選者数表示を初期化
+            updateWinnerCountDisplay();
+            
             // フィールド変更時の制限チェック
             function checkLimits() {
                 const classSelect = document.getElementById('participant-class');
@@ -2810,11 +3180,19 @@
                     checkPassword();
                 }
             });
+
+            // 特別コード入力でEnterキーを押した時の処理
+            document.getElementById('effort-ticket-code').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    submitEffortTicketCode();
+                }
+            });
         });
 
                 // ウィンドウサイズ変更時にくじを再配置
         window.addEventListener('resize', () => {
             if (document.getElementById('kuji-screen').style.display !== 'none') {
+                stopKujiShuffle();
                 document.getElementById('kuji-container').innerHTML = '';
                 setTimeout(() => {
                     generateKuji();
@@ -2972,6 +3350,9 @@
                 localStorage.removeItem(STORAGE_KEY);
                 alert('抽選履歴をクリアしました。');
                 loadAdminData();
+                
+                // 当選者数表示を更新
+                updateWinnerCountDisplay();
             }
         }
 
