@@ -25,50 +25,54 @@
         .keihin-decoration {
             position: fixed;
             z-index: 1;
-            opacity: 0.8;
         }
 
         .keihin-decoration img {
-            width: 180px;
-            height: 180px;
+            width: 120px;
+            height: 120px;
             object-fit: contain;
         }
 
         /* 個別の景品画像配置 */
         .keihin-1 {
-            top: 50px;
-            left: 100px;
+            top: 20px;
+            left: 20px;
             transform: rotate(-15deg);
         }
 
         .keihin-2 {
-            top: 50px;
-            right: 100px;
+            top: 20px;
+            right: 20px;
             transform: rotate(15deg);
         }
 
         .keihin-3 {
-            top: 50%;
-            left: 50px;
-            transform: translateY(-50%) rotate(-10deg);
+            top: 200px;
+            left: 20px;
+            transform: rotate(-10deg);
         }
 
         .keihin-4 {
-            top: 50%;
-            right: 50px;
-            transform: translateY(-50%) rotate(10deg);
+            top: 200px;
+            right: 20px;
+            transform: rotate(10deg);
         }
 
         .keihin-5 {
-            bottom: 50px;
-            left: 100px;
+            bottom: 20px;
+            left: 20px;
             transform: rotate(20deg);
         }
 
         .keihin-6 {
-            bottom: 50px;
-            right: 100px;
+            bottom: 20px;
+            right: 20px;
             transform: rotate(-20deg);
+        }
+
+        /* くじ選び画面では景品画像を非表示 */
+        .hide-keihin .keihin-decoration {
+            display: none;
         }
 
         /* モバイル対応 */
@@ -212,10 +216,10 @@
 
         .kuji-container {
             position: relative;
-            height: 75vh;
+            height: 80vh;
             width: 100%;
             margin: 20px auto;
-            padding: 40px;
+            padding: 20px;
             box-sizing: border-box;
         }
 
@@ -232,7 +236,7 @@
         }
 
         .kuji-item img {
-            max-width: 150px;
+            max-width: 100px;
             height: auto;
             border-radius: 10px;
         }
@@ -659,7 +663,6 @@
             padding: 40px;
             position: relative;
             z-index: 10;
-            background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
         }
 
@@ -811,7 +814,7 @@
 
         @media (max-width: 768px) {
             .kuji-item img {
-                max-width: 120px;
+                max-width: 80px;
             }
         }
             
@@ -2225,12 +2228,12 @@
 
         function generateKuji() {
             const container = document.getElementById('kuji-container');
-            const numKuji = 20; // くじの数
+            const numKuji = 100; // くじの数を大幅に増加
             
             // コンテナの実際のサイズを取得
             const containerRect = container.getBoundingClientRect();
-            const containerWidth = containerRect.width - 180; // 画像サイズを考慮したマージン
-            const containerHeight = containerRect.height - 180;
+            const containerWidth = containerRect.width - 150; // 画像サイズを考慮したマージン
+            const containerHeight = containerRect.height - 150;
             
             for (let i = 0; i < numKuji; i++) {
                 const kujiItem = document.createElement('div');
@@ -2262,6 +2265,9 @@
             // 確認画面を表示
             document.getElementById('kuji-screen').style.display = 'none';
             document.getElementById('confirm-screen').style.display = 'block';
+            
+            // 景品画像を再表示
+            document.body.classList.remove('hide-keihin');
         }
 
         function confirmKuji() {
@@ -2276,6 +2282,9 @@
             // 「いいえ」が選択された場合、くじ選択画面に戻る
             document.getElementById('confirm-screen').style.display = 'none';
             document.getElementById('kuji-screen').style.display = 'block';
+            
+            // 景品画像を非表示（くじ選び画面に戻るため）
+            document.body.classList.add('hide-keihin');
         }
 
         function drawResult(result) {
@@ -2516,6 +2525,9 @@
             document.getElementById('code-screen').style.display = 'none';
             document.getElementById('kuji-screen').style.display = 'block';
             
+            // 景品画像を非表示
+            document.body.classList.add('hide-keihin');
+            
             // くじを生成
             generateKuji();
         }
@@ -2612,6 +2624,9 @@
             document.getElementById('confirm-screen').style.display = 'none';
             document.getElementById('drumroll-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'none';
+            
+            // 景品画像を再表示
+            document.body.classList.remove('hide-keihin');
             
             // カウントダウンをリセット
             document.getElementById('countdown-display').textContent = '';
