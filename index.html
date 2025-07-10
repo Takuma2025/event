@@ -1,0 +1,2861 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>くじ引きWEBサービス</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* 景品画像のスタイル */
+        .keihin-decoration {
+            position: fixed;
+            z-index: 1;
+            opacity: 0.8;
+        }
+
+        .keihin-decoration img {
+            width: 180px;
+            height: 180px;
+            object-fit: contain;
+        }
+
+        /* 個別の景品画像配置 */
+        .keihin-1 {
+            top: 50px;
+            left: 100px;
+            transform: rotate(-15deg);
+        }
+
+        .keihin-2 {
+            top: 50px;
+            right: 100px;
+            transform: rotate(15deg);
+        }
+
+        .keihin-3 {
+            top: 50%;
+            left: 50px;
+            transform: translateY(-50%) rotate(-10deg);
+        }
+
+        .keihin-4 {
+            top: 50%;
+            right: 50px;
+            transform: translateY(-50%) rotate(10deg);
+        }
+
+        .keihin-5 {
+            bottom: 50px;
+            left: 100px;
+            transform: rotate(20deg);
+        }
+
+        .keihin-6 {
+            bottom: 50px;
+            right: 100px;
+            transform: rotate(-20deg);
+        }
+
+        /* モバイル対応 */
+        @media (max-width: 768px) {
+            .keihin-decoration {
+                display: none;
+            }
+        }
+
+
+
+        .title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title img {
+            max-width: 400px;
+            height: auto;
+        }
+
+        .logo {
+            max-width: 200px !important;
+            width: 200px !important;
+            height: auto !important;
+            margin: 0 auto 5px auto !important;
+            display: block !important;
+        }
+
+        .date-display {
+            text-align: center;
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            font-weight: normal;
+        }
+
+
+
+
+
+        .draw-counter {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            animation: pulse-glow 2s infinite;
+        }
+
+        .draw-counter.warning {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .draw-counter.limited {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            }
+            50% { 
+                transform: scale(1.02);
+                box-shadow: 0 6px 20px rgba(76, 175, 80, 0.5);
+            }
+        }
+
+        .count-numbers {
+            font-size: 2em;
+            margin: 10px 0;
+        }
+
+        .remaining-count {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+
+
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ff6b6b;
+            animation: confetti-fall 3s linear infinite;
+        }
+
+        .confetti:nth-child(2n) { background-color: #4ecdc4; }
+        .confetti:nth-child(3n) { background-color: #45b7d1; }
+        .confetti:nth-child(4n) { background-color: #f9ca24; }
+        .confetti:nth-child(5n) { background-color: #6c5ce7; }
+        .confetti:nth-child(6n) { background-color: #00d2b8; }
+        .confetti:nth-child(7n) { background-color: #ff6b6b; }
+        .confetti:nth-child(8n) { background-color: #1dd1a1; }
+        .confetti:nth-child(9n) { background-color: #ffa502; }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            color: #00d2b8;
+            animation: sparkle 2s infinite;
+            font-size: 28px;
+            line-height: 28px;
+            text-align: center;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        .kuji-container {
+            position: relative;
+            height: 75vh;
+            width: 100%;
+            margin: 20px auto;
+            padding: 40px;
+            box-sizing: border-box;
+        }
+
+        .kuji-item {
+            position: absolute;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+        }
+
+        .kuji-item:hover {
+            transform: scale(1.2) rotate(5deg);
+            filter: drop-shadow(0 8px 16px rgba(0,0,0,0.4));
+        }
+
+        .kuji-item img {
+            max-width: 150px;
+            height: auto;
+            border-radius: 10px;
+        }
+
+
+
+        .result-container {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .result-image {
+            max-width: 250px;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 15px;
+        }
+
+        .result-text {
+            color: #d32f2f;
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 1.2;
+            border: 4px solid #ff6b6b;
+            padding: 20px;
+            border-radius: 15px;
+            background: white;
+        }
+
+        .result-text.result-miss-text {
+            border: none;
+            padding: 0;
+            background: transparent;
+            color: #666;
+        }
+
+        .winner-info {
+            color: #666;
+            font-size: 1.4em;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            border: 2px solid #00d2b8;
+        }
+
+        .settings-icon {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: #718096;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1001;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .settings-icon:hover {
+            background: #4a5568;
+            transform: scale(1.1);
+        }
+
+        .settings-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        .admin-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1002;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            width: 800px;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 15px;
+        }
+
+        .admin-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .close-btn {
+            background: #f56565;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+
+        .close-btn:hover {
+            background: #e53e3e;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .admin-table th,
+        .admin-table td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .admin-table th:nth-child(1),
+        .admin-table td:nth-child(1) {
+            min-width: 120px;
+        }
+
+        .admin-table th:nth-child(n+2),
+        .admin-table td:nth-child(n+2) {
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .admin-table th {
+            background: #f7fafc;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .admin-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .admin-table tr:hover {
+            background: #edf2f7;
+        }
+
+
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .status-won {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-lost {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .prize-settings {
+            margin-top: 30px;
+            border-top: 2px solid #e2e8f0;
+            padding-top: 20px;
+        }
+
+        .prize-settings h3 {
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+
+        .prize-group {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .prize-group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .prize-group-title {
+            font-weight: bold;
+            color: #2d3748;
+            font-size: 1.2em;
+        }
+
+        .add-prize-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .add-prize-btn:hover {
+            background: #45a049;
+        }
+
+        .prize-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .prize-label {
+            width: 80px;
+            font-weight: bold;
+            color: #2d3748;
+            font-size: 0.9em;
+        }
+
+        .remove-prize-btn {
+            background: #f56565;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+
+        .remove-prize-btn:hover {
+            background: #e53e3e;
+        }
+
+        .prize-input {
+            flex: 1;
+            margin: 0 10px;
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+        }
+
+        .prize-count {
+            width: 80px;
+            margin: 0 5px;
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .save-settings-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .save-settings-btn:hover {
+            background: #45a049;
+        }
+
+        .save-settings-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .save-settings-btn:disabled:hover {
+            background: #6c757d;
+            transform: none;
+        }
+
+        .clear-history-btn {
+            background: #f56565;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin: 20px 0;
+        }
+
+        .clear-history-btn:hover {
+            background: #e53e3e;
+        }
+
+        .remaining-count-display {
+            font-size: 0.9em;
+            color: #666;
+            margin-left: 5px;
+        }
+
+        .result-win {
+            background: #c6f6d5;
+            color: #22543d;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .result-miss {
+            background: #fed7d7;
+            color: #742a2a;
+            text-align: center;
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .instruction {
+            text-align: center;
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            text-shadow: none;
+        }
+
+        .confirm-container {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .confirm-kuji {
+            max-width: 350px;
+            height: auto;
+            margin: 20px 0;
+            animation: zoomIn 0.5s ease-out;
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: scale(0.1);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .confirm-text {
+            color: #333;
+            font-size: 1.5em;
+            margin: 20px 0;
+        }
+
+        .confirm-buttons {
+            margin-top: 30px;
+        }
+
+        .confirm-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+        }
+
+        .cancel-btn {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        }
+
+        .confirm-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .code-container {
+            display: block;
+            text-align: center;
+            padding: 40px;
+            position: relative;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+        }
+
+        .code-title {
+            color: #333;
+            font-size: 1.8em;
+            margin-bottom: 30px;
+        }
+
+        .code-input-group {
+            margin: 20px 0;
+        }
+
+        .code-input {
+            padding: 15px 20px;
+            font-size: 1.2em;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            width: 300px;
+            max-width: 80%;
+            text-align: center;
+            transition: border-color 0.3s ease;
+        }
+
+        .code-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .code-submit-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .code-submit-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .code-submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .participant-info {
+            background: #f0f0f0;
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .drumroll-container {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .drumroll-text {
+            color: #333;
+            font-size: 2em;
+            margin-bottom: 30px;
+            animation: drumroll-pulse 0.5s infinite;
+        }
+
+        @keyframes drumroll-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+
+
+        .countdown {
+            font-size: 6em;
+            font-weight: bold;
+            margin: 30px 0;
+            color: white;
+            animation: countdown-bounce 1s ease-in-out;
+        }
+
+        .countdown-3 {
+            background: #ff1744;
+            color: white;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 30px auto;
+        }
+
+        .countdown-2 {
+            background: #ffd700;
+            color: white;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 30px auto;
+        }
+
+        .countdown-1 {
+            background: #00ff00;
+            color: white;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 30px auto;
+            animation: countdown-bounce 1s ease-in-out, final-pulse 1s ease-in-out;
+        }
+
+        @keyframes countdown-bounce {
+            0% { 
+                transform: scale(0.1); 
+                opacity: 0; 
+            }
+            50% { 
+                transform: scale(1.3); 
+                opacity: 1; 
+            }
+            100% { 
+                transform: scale(1); 
+                opacity: 1; 
+            }
+        }
+
+        @keyframes final-pulse {
+            0%, 100% { 
+                transform: scale(1); 
+            }
+            50% { 
+                transform: scale(1.1); 
+            }
+        }
+
+        @media (max-width: 768px) {
+            .kuji-item img {
+                max-width: 120px;
+            }
+        }
+            
+            .title img {
+                max-width: 300px;
+            }
+
+            .date-display {
+                font-size: 1.1em;
+            }
+
+            .confirm-kuji {
+                max-width: 300px;
+            }
+
+            .confirm-btn {
+                padding: 12px 25px;
+                font-size: 1.1em;
+                margin: 5px;
+            }
+
+            .drumroll-text {
+                font-size: 1.5em;
+            }
+
+            .countdown {
+                font-size: 3em;
+            }
+
+            .countdown-3, .countdown-2, .countdown-1 {
+                width: 150px;
+                height: 150px;
+                font-size: 3em;
+            }
+
+            .code-title {
+                font-size: 1.5em;
+            }
+
+            .code-input {
+                width: 250px;
+                font-size: 1.1em;
+            }
+
+            #participant-class {
+                width: 270px !important;
+                max-width: 90% !important;
+            }
+
+            #participant-code {
+                width: 270px !important;
+                max-width: 90% !important;
+            }
+
+            .code-submit-btn {
+                padding: 12px 25px;
+                font-size: 1.1em;
+            }
+
+
+
+
+
+            .draw-counter {
+                padding: 15px;
+                font-size: 1.2em;
+            }
+
+            .count-numbers {
+                font-size: 1.5em;
+            }
+
+            .admin-content {
+                width: 95%;
+                padding: 20px;
+                max-height: 85%;
+            }
+
+            .admin-title {
+                font-size: 1.4em;
+            }
+
+            .admin-table {
+                font-size: 0.9em;
+            }
+
+            .admin-table th,
+            .admin-table td {
+                padding: 8px;
+            }
+
+            .result-text {
+                font-size: 2em;
+            }
+
+        .probability-settings {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .probability-settings h3 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .probability-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .probability-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background-color: white;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .probability-item label {
+            font-weight: bold;
+            min-width: 60px;
+        }
+
+        .probability-item input {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            text-align: center;
+        }
+
+        .probability-item.out-of-stock {
+            background-color: #f5f5f5;
+            opacity: 0.7;
+        }
+
+        .probability-item.out-of-stock label {
+            color: #888;
+        }
+
+        .probability-item.out-of-stock input {
+            background-color: #f0f0f0;
+            color: #666;
+        }
+
+        .probability-item.out-of-stock::after {
+            content: ' (在庫切れ)';
+            color: #d32f2f;
+            font-size: 0.9em;
+            margin-left: 5px;
+        }
+
+        .probability-total {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 5px;
+            border: 2px solid #ddd;
+        }
+
+        .probability-total #probability-total-value {
+            font-size: 24px;
+            margin: 0 5px;
+        }
+
+        .prize-item.out-of-stock {
+            background-color: #ffe6e6;
+            border: 1px solid #ff9999;
+        }
+
+        .prize-item.out-of-stock .prize-count {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+
+        .prize-item.out-of-stock .prize-input {
+            background-color: #fff5f5;
+        }
+
+        @media (max-width: 768px) {
+            .probability-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 景品画像（装飾） -->
+        <div class="keihin-decoration keihin-1">
+            <img src="keihin1.jpg" alt="景品1">
+        </div>
+        <div class="keihin-decoration keihin-2">
+            <img src="keihin2.jpg" alt="景品2">
+        </div>
+        <div class="keihin-decoration keihin-3">
+            <img src="keihin3.jpg" alt="景品3">
+        </div>
+        <div class="keihin-decoration keihin-4">
+            <img src="keihin4.jpg" alt="景品4">
+        </div>
+        <div class="keihin-decoration keihin-5">
+            <img src="keihin5.jpg" alt="景品5">
+        </div>
+        <div class="keihin-decoration keihin-6">
+            <img src="keihin6.png" alt="景品6">
+        </div>
+        
+        <div class="title">
+            <img src="rogo.png" alt="ロゴ" class="logo">
+            <img src="title.png" alt="くじ引きWEBサービス">
+        </div>
+        <div class="date-display" id="date-display"></div>
+        
+        <div id="code-screen" class="code-container">
+            <div class="code-title">クラス・コードを入力してください</div>
+            <div class="draw-counter" id="draw-counter" style="display: none;"></div>
+            <div class="code-input-group">
+                <select id="participant-class" class="code-input" style="width: 320px; max-width: 85%;">
+                    <option value="">クラスを選択</option>
+                    <option value="Kid'sゼミ">Kid'sゼミ</option>
+                    <option value="パズル道場">パズル道場</option>
+                    <option value="3J">3J</option>
+                    <option value="4S">4S</option>
+                    <option value="5S">5S</option>
+                    <option value="6S">6S</option>
+                    <option value="4H">4H</option>
+                    <option value="5H">5H</option>
+                    <option value="6H">6H</option>
+                    <option value="1A">1A</option>
+                    <option value="2A">2A</option>
+                    <option value="3A">3A</option>
+                </select>
+            </div>
+            <div class="code-input-group">
+                <select id="participant-code" class="code-input" style="width: 320px; max-width: 85%;">
+                    <option value="">番号を選択</option>
+                </select>
+            </div>
+            <button class="code-submit-btn" onclick="submitCode()">くじをひく</button>
+        </div>
+
+        <div id="kuji-screen" style="display: none;">
+            <div class="participant-info" id="participant-info"></div>
+            <div class="instruction">お好きなくじを選んでください！</div>
+            <div class="kuji-container" id="kuji-container">
+                <!-- くじがJavaScriptで生成されます -->
+            </div>
+        </div>
+
+        <div id="confirm-screen" class="confirm-container">
+            <div class="confirm-text">このくじでいいですか？</div>
+            <img id="confirm-kuji" class="confirm-kuji" src="kuji.png" alt="選択されたくじ">
+            <div class="confirm-buttons">
+                <button class="confirm-btn" onclick="confirmKuji()">はい</button>
+                <button class="confirm-btn cancel-btn" onclick="cancelKuji()">いいえ</button>
+            </div>
+        </div>
+
+        <div id="drumroll-screen" class="drumroll-container">
+            <div class="drumroll-text">結果発表まで…</div>
+            <div id="countdown-display" class="countdown"></div>
+        </div>
+
+        <div id="result-screen" class="result-container">
+            <div class="result-text" id="result-text"></div>
+            <img id="result-image" class="result-image" src="" alt="結果">
+            <div class="winner-info" id="winner-info" style="display: none;"></div>
+            <br>
+            <button class="reset-btn" onclick="resetGame()">もどる</button>
+        </div>
+    </div>
+
+    <!-- 歯車アイコン -->
+    <div class="settings-icon" onclick="openAdminPanel()">
+        <svg viewBox="0 0 24 24">
+            <path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/>
+        </svg>
+    </div>
+
+    <!-- 管理画面 -->
+    <div class="admin-panel" id="admin-panel">
+        <div class="admin-content">
+            <div class="admin-header">
+                <div class="admin-title">管理画面</div>
+                <button class="close-btn" onclick="closeAdminPanel()">閉じる</button>
+            </div>
+            <div id="admin-data">
+                <!-- 管理データがここに表示されます -->
+            </div>
+            <button class="clear-history-btn" onclick="clearHistoryData()">抽選履歴をクリア</button>
+            
+            <div class="prize-settings">
+                <h3>景品設定</h3>
+                <div id="prize-groups-container">
+                    <!-- 景品グループがJavaScriptで生成されます -->
+                </div>
+                <button class="save-settings-btn" onclick="savePrizeSettings()">景品設定を保存</button>
+            </div>
+
+            <div class="probability-settings">
+                <h3>確率設定</h3>
+                <div class="probability-grid">
+                    <div class="probability-item">
+                        <label>特別賞:</label>
+                        <input type="number" id="prob-special" min="0" max="100" value="1">
+                        <span>%</span>
+                    </div>
+                    <div class="probability-item">
+                        <label>1等:</label>
+                        <input type="number" id="prob-1tou" min="0" max="100" value="1">
+                        <span>%</span>
+                    </div>
+                    <div class="probability-item">
+                        <label>2等:</label>
+                        <input type="number" id="prob-2tou" min="0" max="100" value="3">
+                        <span>%</span>
+                    </div>
+                    <div class="probability-item">
+                        <label>3等:</label>
+                        <input type="number" id="prob-3tou" min="0" max="100" value="5">
+                        <span>%</span>
+                    </div>
+                    <div class="probability-item">
+                        <label>4等:</label>
+                        <input type="number" id="prob-4tou" min="0" max="100" value="10">
+                        <span>%</span>
+                    </div>
+                    <div class="probability-item">
+                        <label>5等:</label>
+                        <input type="number" id="prob-5tou" min="0" max="100" value="20">
+                        <span>%</span>
+                    </div>
+                    <div class="probability-item">
+                        <label>ハズレ:</label>
+                        <input type="number" id="prob-hazure" min="0" max="100" value="60">
+                        <span>%</span>
+                    </div>
+                </div>
+                <div class="probability-total">
+                    <span>合計確率: </span>
+                    <span id="probability-total-value">100</span>
+                    <span>%</span>
+                </div>
+                <button class="save-settings-btn" onclick="saveProbabilitySettingsUI()">確率設定を保存</button>
+            </div>
+            
+
+        </div>
+    </div>
+
+    <script>
+        const results = [
+            { image: 'special.jpg', text: '特別賞当選' },
+            { image: '1tou.jpg', text: '1等当選' },
+            { image: '2tou.jpg', text: '2等当選' },
+            { image: '3tou.jpg', text: '3等当選' },
+            { image: '4tou.jpg', text: '4等当選' },
+            { image: '5tou.jpg', text: '5等当選' },
+            { image: 'hazure.jpg', text: '残念！ハズレです...' }
+        ];
+
+        // 確率に基づいて抽選結果を決定
+        function drawByProbability(allowedTypes = null) {
+            // 抽選前に自動バックアップを作成
+            backupCurrentData();
+            console.log('抽選前バックアップ完了');
+            
+            // 設定された確率を取得
+            const probabilitySettings = getProbabilitySettings();
+            
+            console.log('=== 抽選開始 ===');
+            console.log('設定された確率:', probabilitySettings);
+            console.log('許可された種類:', allowedTypes);
+            
+            // 各結果の確率を定義
+            const allProbabilities = [
+                { image: 'special.jpg', text: '特別賞当選', probability: probabilitySettings.special, key: 'special' },
+                { image: '1tou.jpg', text: '1等当選', probability: probabilitySettings['1tou'], key: '1tou' },
+                { image: '2tou.jpg', text: '2等当選', probability: probabilitySettings['2tou'], key: '2tou' },
+                { image: '3tou.jpg', text: '3等当選', probability: probabilitySettings['3tou'], key: '3tou' },
+                { image: '4tou.jpg', text: '4等当選', probability: probabilitySettings['4tou'], key: '4tou' },
+                { image: '5tou.jpg', text: '5等当選', probability: probabilitySettings['5tou'], key: '5tou' },
+                { image: 'hazure.jpg', text: '残念！ハズレです...', probability: probabilitySettings.hazure, key: 'hazure' }
+            ];
+            
+            // 景品設定を取得
+            const prizeSettings = getPrizeSettings();
+            
+            // 利用可能な結果のみをフィルタリング
+            const availableProbabilities = allProbabilities.filter(p => {
+                // 確率が0%の場合は除外
+                if (p.probability <= 0) {
+                    console.log(`除外（確率0%）: ${p.image}`);
+                    return false;
+                }
+                
+                // 許可された種類のチェック（制限クラス用）
+                if (allowedTypes && !allowedTypes.includes(p.image)) {
+                    console.log(`除外（許可されていない）: ${p.image}`);
+                    return false;
+                }
+                
+                // ハズレは常に利用可能
+                if (p.image === 'hazure.jpg') {
+                    console.log(`利用可能（ハズレ）: ${p.image} - 確率: ${p.probability}%`);
+                    return true;
+                }
+                
+                // 景品の在庫チェック
+                const prizeItems = prizeSettings[p.key] || [];
+                const hasStock = prizeItems.some(item => item.remainingCount > 0);
+                
+                if (hasStock) {
+                    console.log(`利用可能（在庫あり）: ${p.image} - 確率: ${p.probability}%`);
+                } else {
+                    console.log(`除外（在庫なし）: ${p.image}`);
+                }
+                
+                return hasStock;
+            });
+            
+            console.log('利用可能な結果数:', availableProbabilities.length);
+            
+            // 利用可能な結果がない場合の処理
+            if (availableProbabilities.length === 0) {
+                console.error('致命的エラー: 利用可能な結果がありません');
+                // ハズレの確率が0%でなければハズレを返す
+                if (probabilitySettings.hazure > 0) {
+                    console.log('ハズレの確率が0%以上のため、ハズレを返します');
+                    return { image: 'hazure.jpg', text: '残念！ハズレです...' };
+                } else {
+                    console.error('ハズレの確率も0%です。システムエラーが発生しました。');
+                    return { image: 'hazure.jpg', text: 'システムエラーが発生しました' };
+                }
+            }
+            
+            // 確率の合計を計算
+            const totalProbability = availableProbabilities.reduce((sum, p) => sum + p.probability, 0);
+            console.log('確率の合計:', totalProbability);
+            
+            if (totalProbability === 0) {
+                console.error('致命的エラー: 確率の合計が0です');
+                return { image: 'hazure.jpg', text: 'システムエラーが発生しました' };
+            }
+            
+            // 0から確率の合計の範囲でランダム値を生成
+            const random = Math.random() * totalProbability;
+            console.log('生成されたランダム値:', random);
+            
+            // 累積確率で判定
+            let currentThreshold = 0;
+            for (const prob of availableProbabilities) {
+                currentThreshold += prob.probability;
+                const actualPercentage = ((prob.probability / totalProbability) * 100).toFixed(1);
+                console.log(`${prob.image}: 設定確率=${prob.probability}% 実際の割合=${actualPercentage}% 累積閾値=${currentThreshold}`);
+                
+                if (random <= currentThreshold) {
+                    console.log(`*** 選択された結果: ${prob.image} ***`);
+                    return { image: prob.image, text: prob.text };
+                }
+            }
+            
+            // フォールバック（通常は到達しない）
+            console.error('フォールバック使用 - 最後の結果を返します');
+            const fallbackResult = availableProbabilities[availableProbabilities.length - 1];
+            console.log('フォールバック結果:', fallbackResult.image);
+            return fallbackResult;
+        }
+
+        // クラス別抽選結果を決定
+        function getResultForParticipant(participantId) {
+            const participantClass = getParticipantClass(participantId);
+            const history = getHistory();
+            const participant = history[participantId] || { totalCount: 0, dates: [], won5th: false, hasWon: false };
+            
+            // 既存のデータの互換性を保つため、hasWonプロパティがない場合は追加
+            if (participant.hasWon === undefined) {
+                participant.hasWon = false;
+            }
+            
+            // 3Aと6S以外のクラスは当たりは1回まで
+            if (!['3A', '6S'].includes(participantClass) && participant.hasWon) {
+                // 既に当たりがある場合はハズレのみ
+                return { image: 'hazure.jpg', text: '残念！ハズレです...' };
+            }
+            
+            // Kid'sゼミ、パズル道場、3Jは4等と5等のみ
+            if (['Kid\'sゼミ', 'パズル道場', '3J'].includes(participantClass)) {
+                // 毎回同じ確率で抽選（5等は何回でも当選可能）
+                // 設定された確率を使用するが、4等、5等、ハズレのみ
+                const allowedTypes = ['4tou.jpg', '5tou.jpg', 'hazure.jpg'];
+                return drawByProbability(allowedTypes);
+            } else {
+                // 他のクラスは全ての等級が当選可能
+                return drawByProbability();
+            }
+        }
+
+        let currentParticipant = null;
+        const MAX_TOTAL_DRAWS = 5;
+        const STORAGE_KEY = 'kuji_history';
+        const PRIZE_SETTINGS_KEY = 'kuji_prize_settings';
+        const PROBABILITY_SETTINGS_KEY = 'kuji_probability_settings';
+
+        // 景品設定のデフォルト値
+        const DEFAULT_PRIZE_SETTINGS = {
+            'special': [
+                { name: '特別ギフト券', totalCount: 3, remainingCount: 3 },
+                { name: '特製グッズ', totalCount: 2, remainingCount: 2 }
+            ],
+            '1tou': [
+                { name: 'iPad', totalCount: 2, remainingCount: 2 },
+                { name: 'Nintendo Switch', totalCount: 2, remainingCount: 2 },
+                { name: '図書カード1万円', totalCount: 1, remainingCount: 1 }
+            ],
+            '2tou': [
+                { name: '図書カード5千円', totalCount: 5, remainingCount: 5 },
+                { name: 'AirPods', totalCount: 3, remainingCount: 3 },
+                { name: 'Amazonギフト券5千円', totalCount: 2, remainingCount: 2 }
+            ],
+            '3tou': [
+                { name: 'QUOカード3千円', totalCount: 10, remainingCount: 10 },
+                { name: '図書カード3千円', totalCount: 5, remainingCount: 5 }
+            ],
+            '4tou': [
+                { name: '文房具セット', totalCount: 20, remainingCount: 20 },
+                { name: 'QUOカード1千円', totalCount: 10, remainingCount: 10 }
+            ],
+            '5tou': [
+                { name: 'お菓子セット', totalCount: 30, remainingCount: 30 },
+                { name: '文房具', totalCount: 20, remainingCount: 20 }
+            ]
+        };
+
+        // 確率設定のデフォルト値
+        const DEFAULT_PROBABILITY_SETTINGS = {
+            'special': 1,
+            '1tou': 1,
+            '2tou': 3,
+            '3tou': 5,
+            '4tou': 10,
+            '5tou': 20,
+            'hazure': 60
+        };
+
+        // クラスごとの制限設定
+        const CLASS_RESTRICTIONS = {
+            unlimited: ["Kid'sゼミ", "パズル道場", "3J"], // 1日無制限
+            restricted: ["4S", "5S", "6S", "4H", "5H", "6H", "1A", "2A", "3A"] // 5日に1回
+        };
+
+        // 履歴データを取得
+        function getHistory() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : {};
+        }
+
+        // 履歴データを保存
+        function saveHistory(history) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+        }
+
+        // 景品設定を取得
+        function getPrizeSettings() {
+            console.log('=== 景品設定取得処理 ===');
+            console.log('PRIZE_SETTINGS_KEY:', PRIZE_SETTINGS_KEY);
+            const stored = localStorage.getItem(PRIZE_SETTINGS_KEY);
+            console.log('localStorageから取得した生データ:', stored);
+            
+            if (stored) {
+                try {
+                    const result = JSON.parse(stored);
+                    console.log('既存の景品設定を取得:', result);
+                    console.log('=== 景品設定取得完了（既存データ） ===');
+                    return result;
+                } catch (error) {
+                    console.error('JSON解析エラー:', error);
+                    console.log('デフォルト設定を使用します');
+                }
+            } else {
+                console.log('localStorageに設定がないため、デフォルト設定を初期化');
+            }
+            
+            // デフォルト設定を一度だけ保存
+            const defaultSettings = JSON.parse(JSON.stringify(DEFAULT_PRIZE_SETTINGS));
+            localStorage.setItem(PRIZE_SETTINGS_KEY, JSON.stringify(defaultSettings));
+            console.log('デフォルト設定を保存しました:', defaultSettings);
+            console.log('=== 景品設定取得完了（デフォルト初期化） ===');
+            return defaultSettings;
+        }
+
+        // 緊急用：強制的に在庫を1個減らす関数（デバッグ用）
+        function forceReduceStock(prizeKey, prizeName) {
+            console.log('*** 緊急在庫減少処理 ***');
+            const settings = getPrizeSettings();
+            const items = settings[prizeKey] || [];
+            const targetIndex = items.findIndex(item => item.name === prizeName && item.remainingCount > 0);
+            
+            if (targetIndex !== -1) {
+                const beforeCount = settings[prizeKey][targetIndex].remainingCount;
+                settings[prizeKey][targetIndex].remainingCount--;
+                const afterCount = settings[prizeKey][targetIndex].remainingCount;
+                
+                const saveSuccess = savePrizeSettingsData(settings);
+                
+                if (saveSuccess) {
+                    console.log(`${prizeName}: ${beforeCount} → ${afterCount}`);
+                    console.log('緊急保存完了');
+                    
+                    // 管理画面更新
+                    forceRefreshAdmin();
+                    return true;
+                } else {
+                    console.error('緊急保存失敗');
+                    return false;
+                }
+            } else {
+                console.log('該当する景品が見つかりません');
+                return false;
+            }
+        }
+
+        // 緊急用：現在のデータをバックアップする
+        function backupCurrentData() {
+            const currentData = localStorage.getItem(PRIZE_SETTINGS_KEY);
+            if (currentData) {
+                localStorage.setItem(PRIZE_SETTINGS_KEY + '_backup', currentData);
+                console.log('データをバックアップしました');
+                return true;
+            }
+            return false;
+        }
+
+        // 緊急用：バックアップからデータを復旧する
+        function restoreFromBackup() {
+            const backupData = localStorage.getItem(PRIZE_SETTINGS_KEY + '_backup');
+            if (backupData) {
+                localStorage.setItem(PRIZE_SETTINGS_KEY, backupData);
+                console.log('バックアップからデータを復旧しました');
+                forceRefreshAdmin();
+                return true;
+            } else {
+                console.log('バックアップが見つかりません');
+                return false;
+            }
+        }
+
+        // 緊急用：現在のデータ状況を確認する
+        function checkDataStatus() {
+            console.log('=== データ状況確認 ===');
+            const current = localStorage.getItem(PRIZE_SETTINGS_KEY);
+            const backup = localStorage.getItem(PRIZE_SETTINGS_KEY + '_backup');
+            
+            console.log('現在のデータ:', current);
+            console.log('バックアップデータ:', backup);
+            
+            if (current) {
+                try {
+                    const parsed = JSON.parse(current);
+                    console.log('現在のデータ（解析済み）:', parsed);
+                    
+                    // 各景品の在庫情報を詳細表示
+                    Object.keys(parsed).forEach(key => {
+                        console.log(`${key}:`);
+                        const items = parsed[key] || [];
+                        items.forEach((item, index) => {
+                            console.log(`  ${index}: ${item.name} - 残り${item.remainingCount}個`);
+                        });
+                    });
+                } catch (e) {
+                    console.error('現在のデータが破損しています');
+                }
+            } else {
+                console.warn('現在のデータがありません');
+            }
+            
+            console.log('=== データ状況確認完了 ===');
+        }
+
+        // 緊急用：UI表示を強制更新する
+        function forceUpdateUI() {
+            console.log('=== UI強制更新開始 ===');
+            
+            // 景品設定の表示を更新
+            loadPrizeSettings();
+            
+            // 少し遅延を入れて確率設定を更新
+            setTimeout(() => {
+                updateProbabilityItemStyles();
+                updateProbabilityTotal();
+                console.log('=== UI強制更新完了 ===');
+            }, 150);
+        }
+
+        // 緊急用：管理画面を強制的にリフレッシュする関数
+        function forceRefreshAdmin() {
+            console.log('*** 管理画面強制リフレッシュ開始 ***');
+            
+            // 現在のlocalStorageの内容を確認
+            const currentData = localStorage.getItem(PRIZE_SETTINGS_KEY);
+            console.log('リフレッシュ前のlocalStorageデータ:', currentData);
+            
+            if (!currentData) {
+                console.error('警告: localStorageにデータがありません！');
+                return;
+            }
+            
+            try {
+                const parsedData = JSON.parse(currentData);
+                console.log('リフレッシュ前の解析済みデータ:', parsedData);
+                
+                // 管理画面の表示を強制更新
+                loadPrizeSettings();
+                
+                // 少し遅延を入れて確率設定を更新
+                setTimeout(() => {
+                    updateProbabilityItemStyles();
+                    updateProbabilityTotal();
+                }, 100);
+                
+                // リフレッシュ後も確認
+                const afterData = localStorage.getItem(PRIZE_SETTINGS_KEY);
+                console.log('リフレッシュ後のlocalStorageデータ:', afterData);
+                
+                if (currentData !== afterData) {
+                    console.error('警告: リフレッシュ前後でデータが変わりました！');
+                    console.log('変更前:', currentData);
+                    console.log('変更後:', afterData);
+                }
+                
+                console.log('*** 管理画面強制リフレッシュ完了 ***');
+            } catch (error) {
+                console.error('リフレッシュエラー:', error);
+            }
+        }
+
+        // 統一された景品設定保存処理
+        function savePrizeSettingsData(settings) {
+            console.log('=== 統一景品設定保存処理 ===');
+            console.log('保存前の設定:', settings);
+            
+            try {
+                localStorage.setItem(PRIZE_SETTINGS_KEY, JSON.stringify(settings));
+                console.log('保存処理完了');
+                
+                // 保存後に確認
+                const saved = localStorage.getItem(PRIZE_SETTINGS_KEY);
+                const parsedSaved = JSON.parse(saved);
+                console.log('保存後の確認:', parsedSaved);
+                console.log('=== 景品設定保存完了 ===');
+                return true;
+            } catch (error) {
+                console.error('保存エラー:', error);
+                return false;
+            }
+        }
+
+        // 確率設定を取得
+        function getProbabilitySettings() {
+            const stored = localStorage.getItem(PROBABILITY_SETTINGS_KEY);
+            return stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(DEFAULT_PROBABILITY_SETTINGS));
+        }
+
+        // 確率設定を保存
+        function saveProbabilitySettings(settings) {
+            localStorage.setItem(PROBABILITY_SETTINGS_KEY, JSON.stringify(settings));
+        }
+
+        // 景品設定を保存（UI から呼び出される）
+        function savePrizeSettings() {
+            console.log('*** UI景品設定保存開始 ***');
+            
+            // 現在の設定を取得して、既存データを保持
+            const currentSettings = getPrizeSettings();
+            console.log('現在の設定:', currentSettings);
+            
+            const newSettings = {};
+            const prizes = ['special', '1tou', '2tou', '3tou', '4tou', '5tou'];
+            
+            prizes.forEach(prize => {
+                const prizeItems = [];
+                const container = document.getElementById(`${prize}-items`);
+                
+                if (container) {
+                    const items = container.querySelectorAll('.prize-item');
+                    console.log(`${prize}の景品アイテム数:`, items.length);
+                    
+                    items.forEach((item, index) => {
+                        const nameInput = item.querySelector(`input[data-type="name"]`);
+                        const remainingInput = item.querySelector(`input[data-type="remaining"]`);
+                        
+                        if (nameInput && remainingInput) {
+                            const name = nameInput.value.trim();
+                            const remainingCount = parseInt(remainingInput.value) || 0;
+                            
+                            if (name) { // 名前があれば残り個数が0でも保存
+                                prizeItems.push({
+                                    name: name,
+                                    totalCount: remainingCount, // 総数も残り数と同じに設定
+                                    remainingCount: remainingCount
+                                });
+                                console.log(`${prize}[${index}]: ${name} - ${remainingCount}個`);
+                            }
+                        }
+                    });
+                } else {
+                    console.log(`${prize}のコンテナが見つかりません`);
+                    // 既存の設定を保持
+                    prizeItems.push(...(currentSettings[prize] || []));
+                }
+                
+                newSettings[prize] = prizeItems;
+            });
+            
+            console.log('新しい設定:', newSettings);
+            
+            const saveSuccess = savePrizeSettingsData(newSettings);
+            
+            if (saveSuccess) {
+                alert('景品設定を保存しました！');
+                console.log('*** UI景品設定保存成功 ***');
+                
+                // 強制リフレッシュで確実に更新
+                setTimeout(() => {
+                    forceRefreshAdmin();
+                }, 100);
+            } else {
+                alert('景品設定の保存に失敗しました。');
+                console.error('*** UI景品設定保存失敗 ***');
+            }
+        }
+
+        // 確率設定を保存（UI から呼び出される）
+        function saveProbabilitySettingsUI() {
+            const settings = {
+                special: parseInt(document.getElementById('prob-special').value) || 0,
+                '1tou': parseInt(document.getElementById('prob-1tou').value) || 0,
+                '2tou': parseInt(document.getElementById('prob-2tou').value) || 0,
+                '3tou': parseInt(document.getElementById('prob-3tou').value) || 0,
+                '4tou': parseInt(document.getElementById('prob-4tou').value) || 0,
+                '5tou': parseInt(document.getElementById('prob-5tou').value) || 0,
+                hazure: parseInt(document.getElementById('prob-hazure').value) || 0
+            };
+            
+            const total = settings.special + settings['1tou'] + settings['2tou'] + settings['3tou'] + settings['4tou'] + settings['5tou'] + settings.hazure;
+            
+            // 在庫チェック：在庫がない景品は0%でも許可
+            const prizeSettings = getPrizeSettings();
+            const validationResult = validateProbabilitySettings(settings, prizeSettings);
+            
+            if (!validationResult.isValid) {
+                alert(validationResult.message);
+                return;
+            }
+            
+            console.log('確率設定を保存:', settings, '合計:', total);
+            saveProbabilitySettings(settings);
+            alert('確率設定を保存しました！');
+            loadProbabilitySettings();
+        }
+
+        // 確率設定の検証
+        function validateProbabilitySettings(settings, prizeSettings) {
+            const prizeKeys = ['special', '1tou', '2tou', '3tou', '4tou', '5tou'];
+            
+            // 在庫がある景品を特定
+            const availablePrizes = prizeKeys.filter(key => {
+                const items = prizeSettings[key] || [];
+                return items.some(item => item.remainingCount > 0);
+            });
+            
+            // ハズレは常に利用可能
+            availablePrizes.push('hazure');
+            
+            // 在庫がある景品の確率の合計を計算
+            let availableTotal = 0;
+            let outOfStockPrizes = [];
+            
+            Object.keys(settings).forEach(key => {
+                if (availablePrizes.includes(key)) {
+                    availableTotal += settings[key];
+                } else if (settings[key] > 0) {
+                    // 在庫がないのに確率が設定されている
+                    const displayName = key === 'hazure' ? 'ハズレ' : 
+                                      key === 'special' ? '特別賞' : 
+                                      key.replace('tou', '等');
+                    outOfStockPrizes.push(displayName);
+                }
+            });
+            
+            // 在庫がない景品に確率が設定されている場合
+            if (outOfStockPrizes.length > 0) {
+                return {
+                    isValid: false,
+                    message: `以下の景品は在庫がないため確率を0%にしてください：\n${outOfStockPrizes.join(', ')}`
+                };
+            }
+            
+            // 在庫がある景品の確率の合計が100%でない場合
+            if (availableTotal !== 100) {
+                const availableNames = availablePrizes.map(key => 
+                    key === 'hazure' ? 'ハズレ' : 
+                    key === 'special' ? '特別賞' : 
+                    key.replace('tou', '等')
+                );
+                
+                return {
+                    isValid: false,
+                    message: `在庫がある景品の確率の合計が${availableTotal}%です。\n在庫がある景品（${availableNames.join(', ')}）の確率の合計を100%にしてください。`
+                };
+            }
+            
+            return { isValid: true };
+        }
+
+        // 景品設定をUIに読み込み
+        function loadPrizeSettings() {
+            console.log('=== 景品設定UI読み込み開始 ===');
+            
+            // データ取得前の状態を記録
+            const beforeData = localStorage.getItem(PRIZE_SETTINGS_KEY);
+            console.log('読み込み前のlocalStorageデータ:', beforeData);
+            
+            const settings = getPrizeSettings();
+            console.log('読み込んだ景品設定:', settings);
+            
+            // データ取得後の状態を確認
+            const afterData = localStorage.getItem(PRIZE_SETTINGS_KEY);
+            console.log('読み込み後のlocalStorageデータ:', afterData);
+            
+            if (beforeData !== afterData) {
+                console.warn('警告: getPrizeSettings()がデータを変更しました！');
+                console.log('変更前:', beforeData);
+                console.log('変更後:', afterData);
+            }
+            
+            renderPrizeGroups(settings);
+            console.log('=== 景品設定UI読み込み完了 ===');
+        }
+
+        // 確率設定をUIに読み込み
+        function loadProbabilitySettings() {
+            const settings = getProbabilitySettings();
+            const prizeSettings = getPrizeSettings();
+            
+            document.getElementById('prob-special').value = settings.special;
+            document.getElementById('prob-1tou').value = settings['1tou'];
+            document.getElementById('prob-2tou').value = settings['2tou'];
+            document.getElementById('prob-3tou').value = settings['3tou'];
+            document.getElementById('prob-4tou').value = settings['4tou'];
+            document.getElementById('prob-5tou').value = settings['5tou'];
+            document.getElementById('prob-hazure').value = settings.hazure;
+            
+            // 在庫状況に基づいて視覚的スタイルを適用
+            updateProbabilityItemStyles();
+            
+            updateProbabilityTotal();
+        }
+
+        // 確率設定項目の視覚的スタイルを更新
+        function updateProbabilityItemStyles() {
+            console.log('=== 確率設定スタイル更新開始 ===');
+            const prizeSettings = getPrizeSettings();
+            console.log('取得した景品設定:', prizeSettings);
+            
+            const prizeKeys = ['special', '1tou', '2tou', '3tou', '4tou', '5tou'];
+            
+            prizeKeys.forEach(key => {
+                const items = prizeSettings[key] || [];
+                console.log(`${key}の景品一覧:`, items);
+                
+                const hasStock = items.some(item => {
+                    const stockExists = item.remainingCount > 0;
+                    console.log(`  ${item.name}: 残り${item.remainingCount}個 - 在庫${stockExists ? 'あり' : 'なし'}`);
+                    return stockExists;
+                });
+                
+                console.log(`${key}の在庫判定: ${hasStock ? '在庫あり' : '在庫なし'}`);
+                
+                const itemElement = document.querySelector(`#prob-${key}`);
+                if (itemElement) {
+                    const probabilityItem = itemElement.closest('.probability-item');
+                    if (probabilityItem) {
+                        if (!hasStock) {
+                            probabilityItem.classList.add('out-of-stock');
+                            console.log(`${key}: 在庫切れスタイル適用`);
+                        } else {
+                            probabilityItem.classList.remove('out-of-stock');
+                            console.log(`${key}: 在庫切れスタイル削除`);
+                        }
+                    } else {
+                        console.warn(`${key}: probability-itemが見つかりません`);
+                    }
+                } else {
+                    console.warn(`${key}: 確率入力要素が見つかりません`);
+                }
+            });
+            
+            // ハズレは常に利用可能なのでout-of-stockクラスを削除
+            const hazureElement = document.querySelector('#prob-hazure');
+            if (hazureElement) {
+                const hazureProbabilityItem = hazureElement.closest('.probability-item');
+                if (hazureProbabilityItem) {
+                    hazureProbabilityItem.classList.remove('out-of-stock');
+                    console.log('ハズレ: 在庫切れスタイル削除');
+                }
+            }
+            
+            console.log('=== 確率設定スタイル更新完了 ===');
+        }
+
+        // 確率の合計値を更新
+        function updateProbabilityTotal() {
+            console.log('=== 確率合計値更新開始 ===');
+            
+            const settings = {
+                special: parseInt(document.getElementById('prob-special').value) || 0,
+                '1tou': parseInt(document.getElementById('prob-1tou').value) || 0,
+                '2tou': parseInt(document.getElementById('prob-2tou').value) || 0,
+                '3tou': parseInt(document.getElementById('prob-3tou').value) || 0,
+                '4tou': parseInt(document.getElementById('prob-4tou').value) || 0,
+                '5tou': parseInt(document.getElementById('prob-5tou').value) || 0,
+                hazure: parseInt(document.getElementById('prob-hazure').value) || 0
+            };
+            
+            console.log('現在の確率設定:', settings);
+            
+            const prizeSettings = getPrizeSettings();
+            console.log('景品設定:', prizeSettings);
+            
+            const prizeKeys = ['special', '1tou', '2tou', '3tou', '4tou', '5tou'];
+            
+            // 在庫がある景品を特定
+            const availablePrizes = prizeKeys.filter(key => {
+                const items = prizeSettings[key] || [];
+                const hasStock = items.some(item => item.remainingCount > 0);
+                console.log(`${key}: 在庫${hasStock ? 'あり' : 'なし'} (アイテム数: ${items.length})`);
+                items.forEach((item, index) => {
+                    console.log(`  ${index}: ${item.name} - 残り${item.remainingCount}個`);
+                });
+                return hasStock;
+            });
+            availablePrizes.push('hazure'); // ハズレは常に利用可能
+            
+            console.log('在庫がある景品:', availablePrizes);
+            
+            // 全体の合計と在庫がある景品の合計を計算
+            const totalAll = Object.values(settings).reduce((sum, val) => sum + val, 0);
+            let totalAvailable = 0;
+            let hasOutOfStockWithProbability = false;
+            
+            Object.keys(settings).forEach(key => {
+                if (availablePrizes.includes(key)) {
+                    totalAvailable += settings[key];
+                    console.log(`${key}: 在庫あり - 確率${settings[key]}%`);
+                } else if (settings[key] > 0) {
+                    hasOutOfStockWithProbability = true;
+                    console.log(`${key}: 在庫なし - 確率${settings[key]}%（問題）`);
+                }
+            });
+            
+            console.log(`全体合計: ${totalAll}, 利用可能合計: ${totalAvailable}, 在庫切れ景品に確率設定: ${hasOutOfStockWithProbability}`);
+            
+            // 表示更新
+            const totalElement = document.getElementById('probability-total-value');
+            const saveButton = document.querySelector('.save-settings-btn[onclick="saveProbabilitySettingsUI()"]');
+            
+            if (hasOutOfStockWithProbability) {
+                totalElement.textContent = `${totalAll} (在庫切れ景品に確率設定あり)`;
+                totalElement.style.color = '#dc3545';
+                saveButton.disabled = true;
+                saveButton.textContent = '確率設定を保存（無効）';
+                console.log('結果: 在庫切れ景品に確率設定あり');
+            } else if (totalAvailable === 100) {
+                totalElement.textContent = totalAvailable;
+                totalElement.style.color = '#28a745';
+                saveButton.disabled = false;
+                saveButton.textContent = '確率設定を保存';
+                console.log('結果: 100%で保存可能');
+            } else {
+                totalElement.textContent = `${totalAvailable} (在庫がある景品のみ)`;
+                totalElement.style.color = '#dc3545';
+                saveButton.disabled = true;
+                saveButton.textContent = '確率設定を保存（100%でない）';
+                console.log('結果: 100%でない');
+            }
+            
+            console.log('=== 確率合計値更新完了 ===');
+        }
+
+        // 景品グループをレンダリング
+        function renderPrizeGroups(settings) {
+            console.log('*** renderPrizeGroups開始 ***');
+            console.log('レンダリング対象の設定:', settings);
+            
+            const container = document.getElementById('prize-groups-container');
+            if (!container) {
+                console.error('prize-groups-containerが見つかりません');
+                return;
+            }
+            
+            // 完全にクリア
+            container.innerHTML = '';
+            console.log('コンテナをクリアしました');
+            
+            const prizeNames = {
+                'special': '特別賞',
+                '1tou': '1等',
+                '2tou': '2等', 
+                '3tou': '3等',
+                '4tou': '4等',
+                '5tou': '5等'
+            };
+            
+            Object.keys(prizeNames).forEach(prizeKey => {
+                console.log(`${prizeKey}（${prizeNames[prizeKey]}）の処理開始`);
+                
+                const prizeGroup = document.createElement('div');
+                prizeGroup.className = 'prize-group';
+                
+                const header = document.createElement('div');
+                header.className = 'prize-group-header';
+                
+                const title = document.createElement('div');
+                title.className = 'prize-group-title';
+                title.textContent = prizeNames[prizeKey];
+                
+                const addBtn = document.createElement('button');
+                addBtn.className = 'add-prize-btn';
+                addBtn.textContent = '+ 景品追加';
+                addBtn.onclick = () => addPrizeItem(prizeKey);
+                
+                header.appendChild(title);
+                header.appendChild(addBtn);
+                
+                const itemsContainer = document.createElement('div');
+                itemsContainer.id = `${prizeKey}-items`;
+                
+                prizeGroup.appendChild(header);
+                prizeGroup.appendChild(itemsContainer);
+                container.appendChild(prizeGroup);
+                
+                // 景品アイテムをレンダリング
+                const items = settings[prizeKey] || [];
+                console.log(`${prizeKey}の景品数:`, items.length);
+                
+                items.forEach((item, index) => {
+                    console.log(`${prizeKey}[${index}]: ${item.name} - 残り${item.remainingCount}個`);
+                    addPrizeItemWithData(prizeKey, item, index);
+                });
+                
+                // 空の場合は1つ追加
+                if (items.length === 0) {
+                    console.log(`${prizeKey}は空のため、新規アイテムを追加`);
+                    addPrizeItem(prizeKey);
+                }
+                
+                console.log(`${prizeKey}の処理完了`);
+            });
+            
+            console.log('*** renderPrizeGroups完了 ***');
+        }
+
+        // 景品アイテムを追加
+        function addPrizeItem(prizeKey) {
+            addPrizeItemWithData(prizeKey, { name: '', totalCount: 1, remainingCount: 1 });
+        }
+
+        // データ付きで景品アイテムを追加
+        function addPrizeItemWithData(prizeKey, data, index = null) {
+            console.log(`景品アイテム追加: ${prizeKey}`, data);
+            
+            const container = document.getElementById(`${prizeKey}-items`);
+            const itemCount = container.children.length;
+            
+            const prizeItem = document.createElement('div');
+            prizeItem.className = 'prize-item';
+            
+            // 在庫が0個の場合は特別なクラスを追加
+            const remainingCount = typeof data.remainingCount === 'number' ? data.remainingCount : (data.totalCount || 1);
+            console.log(`${prizeKey} - ${data.name}: 残り${remainingCount}個（元データ：remainingCount=${data.remainingCount}, totalCount=${data.totalCount}）`);
+            
+            if (remainingCount === 0) {
+                prizeItem.classList.add('out-of-stock');
+                console.log(`${prizeKey} - ${data.name}: 在庫切れマーク追加`);
+            }
+            
+            const label = document.createElement('div');
+            label.className = 'prize-label';
+            label.textContent = `${itemCount + 1}番目`;
+            
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.className = 'prize-input';
+            nameInput.setAttribute('data-type', 'name');
+            nameInput.placeholder = '景品名を入力';
+            nameInput.value = data.name || '';
+            
+            const remainingLabel = document.createElement('span');
+            remainingLabel.textContent = '残り:';
+            
+            const stockStatus = document.createElement('span');
+            stockStatus.className = 'stock-status';
+            if (remainingCount === 0) {
+                stockStatus.textContent = '(在庫切れ)';
+                stockStatus.style.color = '#d32f2f';
+                stockStatus.style.fontSize = '0.9em';
+                stockStatus.style.marginLeft = '5px';
+            }
+            
+            const remainingInput = document.createElement('input');
+            remainingInput.type = 'number';
+            remainingInput.className = 'prize-count';
+            remainingInput.setAttribute('data-type', 'remaining');
+            remainingInput.min = '0';
+            remainingInput.max = '999';
+            remainingInput.value = remainingCount;
+            
+            console.log(`入力フィールド設定: ${data.name} の値を ${remainingCount} に設定`);
+            
+            // 在庫数変更時の視覚的フィードバック
+            remainingInput.addEventListener('input', function() {
+                const currentValue = parseInt(this.value) || 0;
+                if (currentValue === 0) {
+                    prizeItem.classList.add('out-of-stock');
+                    stockStatus.textContent = '(在庫切れ)';
+                    stockStatus.style.color = '#d32f2f';
+                } else {
+                    prizeItem.classList.remove('out-of-stock');
+                    stockStatus.textContent = '';
+                }
+                
+                // 確率設定の表示も更新（少し遅延を入れる）
+                setTimeout(() => {
+                    updateProbabilityItemStyles();
+                    updateProbabilityTotal();
+                }, 50);
+            });
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-prize-btn';
+            removeBtn.textContent = '削除';
+            removeBtn.onclick = () => {
+                prizeItem.remove();
+                updatePrizeLabels(prizeKey);
+            };
+            
+            prizeItem.appendChild(label);
+            prizeItem.appendChild(nameInput);
+            prizeItem.appendChild(remainingLabel);
+            prizeItem.appendChild(stockStatus);
+            prizeItem.appendChild(remainingInput);
+            prizeItem.appendChild(removeBtn);
+            
+            container.appendChild(prizeItem);
+            updatePrizeLabels(prizeKey);
+        }
+
+        // 景品ラベルを更新
+        function updatePrizeLabels(prizeKey) {
+            const container = document.getElementById(`${prizeKey}-items`);
+            const items = container.querySelectorAll('.prize-item');
+            
+            items.forEach((item, index) => {
+                const label = item.querySelector('.prize-label');
+                label.textContent = `${index + 1}番目`;
+            });
+        }
+
+        // 今日の日付を取得
+        function getTodayString() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // 参加者のクラスを取得
+        function getParticipantClass(participantId) {
+            return participantId.split('・')[0];
+        }
+
+        // 日付間の差を計算
+        function daysBetween(date1, date2) {
+            const oneDay = 24 * 60 * 60 * 1000;
+            const firstDate = new Date(date1);
+            const secondDate = new Date(date2);
+            return Math.round(Math.abs((firstDate - secondDate) / oneDay));
+        }
+
+        // 参加者の引いた回数を取得
+        function getParticipantStats(participantId) {
+            const history = getHistory();
+            const participant = history[participantId] || { totalCount: 0, dates: [], won5th: false, hasWon: false };
+            
+            // 既存のデータの互換性を保つため、プロパティがない場合は追加
+            if (participant.won5th === undefined) {
+                participant.won5th = false;
+            }
+            if (participant.hasWon === undefined) {
+                participant.hasWon = false;
+            }
+            
+            const today = getTodayString();
+            const participantClass = getParticipantClass(participantId);
+            const remainingCount = MAX_TOTAL_DRAWS - participant.totalCount;
+
+            let canDrawToday = false;
+            let statusMessage = '';
+            let daysToWait = 0;
+
+            if (CLASS_RESTRICTIONS.unlimited.includes(participantClass)) {
+                // 無制限クラス: 1日何回でもOK（最大5回まで）
+                canDrawToday = participant.totalCount < MAX_TOTAL_DRAWS;
+                const todayCount = participant.dates.filter(date => date === today).length;
+                statusMessage = `今日${todayCount}回 / 残り${remainingCount}回`;
+            } else if (CLASS_RESTRICTIONS.restricted.includes(participantClass)) {
+                // 制限クラス: 5日に1回
+                if (participant.dates.length === 0) {
+                    canDrawToday = true;
+                    statusMessage = `初回 / 残り${remainingCount}回`;
+                } else {
+                    const lastDrawDate = participant.dates[participant.dates.length - 1];
+                    const daysSinceLastDraw = daysBetween(today, lastDrawDate);
+                    
+                    if (daysSinceLastDraw >= 5) {
+                        canDrawToday = participant.totalCount < MAX_TOTAL_DRAWS;
+                        statusMessage = `前回から${daysSinceLastDraw}日経過 / 残り${remainingCount}回`;
+                    } else {
+                        canDrawToday = false;
+                        daysToWait = 5 - daysSinceLastDraw;
+                        statusMessage = `あと${daysToWait}日待ってください`;
+                    }
+                }
+            }
+            
+            return {
+                totalCount: participant.totalCount,
+                remainingCount: remainingCount,
+                canDrawToday: canDrawToday,
+                canDrawTotal: participant.totalCount < MAX_TOTAL_DRAWS,
+                statusMessage: statusMessage,
+                daysToWait: daysToWait
+            };
+        }
+
+        // 抽選記録を更新
+        function recordDraw(participantId, result, selectedPrize = null) {
+            const history = getHistory();
+            const today = getTodayString();
+            
+            if (!history[participantId]) {
+                history[participantId] = { totalCount: 0, dates: [], won5th: false, hasWon: false, winHistory: [] };
+            }
+            
+            // 既存データの互換性を保つため、winHistoryがない場合は追加
+            if (!history[participantId].winHistory) {
+                history[participantId].winHistory = [];
+            }
+            
+            history[participantId].totalCount++;
+            history[participantId].dates.push(today);
+            
+            // 当選履歴を記録
+            let prize = 'ハズレ';
+            let prizeName = '';
+            if (result.image === 'special.jpg') prize = '特別賞';
+            else if (result.image === '1tou.jpg') prize = '1等';
+            else if (result.image === '2tou.jpg') prize = '2等';
+            else if (result.image === '3tou.jpg') prize = '3等';
+            else if (result.image === '4tou.jpg') prize = '4等';
+            else if (result.image === '5tou.jpg') prize = '5等';
+            
+            // 当選した景品名を記録
+            if (selectedPrize) {
+                prizeName = selectedPrize.name;
+            }
+            
+            history[participantId].winHistory.push({
+                date: today,
+                prize: prize,
+                prizeName: prizeName
+            });
+            
+            // 5等当選の場合は記録（無制限クラスは何回でも当選可能）
+            if (result.image === '5tou.jpg') {
+                const participantClass = getParticipantClass(participantId);
+                if (!CLASS_RESTRICTIONS.unlimited.includes(participantClass)) {
+                    history[participantId].won5th = true;
+                }
+            }
+            
+            // 当たり（ハズレ以外）の場合は記録
+            if (result.image !== 'hazure.jpg') {
+                history[participantId].hasWon = true;
+            }
+            
+            saveHistory(history);
+        }
+
+        function generateKuji() {
+            const container = document.getElementById('kuji-container');
+            const numKuji = 20; // くじの数
+            
+            // コンテナの実際のサイズを取得
+            const containerRect = container.getBoundingClientRect();
+            const containerWidth = containerRect.width - 180; // 画像サイズを考慮したマージン
+            const containerHeight = containerRect.height - 180;
+            
+            for (let i = 0; i < numKuji; i++) {
+                const kujiItem = document.createElement('div');
+                kujiItem.className = 'kuji-item';
+                
+                // ランダムな位置に配置（マージンを考慮）
+                const x = Math.random() * Math.max(containerWidth, 100);
+                const y = Math.random() * Math.max(containerHeight, 100);
+                kujiItem.style.left = x + 'px';
+                kujiItem.style.top = y + 'px';
+                
+                // ランダムな回転を追加
+                const rotation = Math.random() * 360;
+                kujiItem.style.transform = `rotate(${rotation}deg)`;
+                
+                const img = document.createElement('img');
+                img.src = 'kuji.png';
+                img.alt = 'くじ';
+                
+                kujiItem.appendChild(img);
+                
+                kujiItem.addEventListener('click', () => showConfirm());
+                
+                container.appendChild(kujiItem);
+            }
+        }
+
+        function showConfirm() {
+            // 確認画面を表示
+            document.getElementById('kuji-screen').style.display = 'none';
+            document.getElementById('confirm-screen').style.display = 'block';
+        }
+
+        function confirmKuji() {
+            // 「はい」が選択された場合、結果を判定
+            const result = getResultForParticipant(currentParticipant);
+            
+            // 当選・ハズレ関係なく確定演出を表示
+            startDrumroll(result);
+        }
+
+        function cancelKuji() {
+            // 「いいえ」が選択された場合、くじ選択画面に戻る
+            document.getElementById('confirm-screen').style.display = 'none';
+            document.getElementById('kuji-screen').style.display = 'block';
+        }
+
+        function drawResult(result) {
+            // 景品設定を取得
+            const prizeSettings = getPrizeSettings();
+            
+            // 結果テキストに景品名を含める
+            let resultText = result.text;
+            let selectedPrize = null;
+            
+            console.log('=== 景品処理開始 ===');
+            console.log('抽選結果:', result);
+            
+            if (result.image !== 'hazure.jpg') {
+                const prizeKey = result.image.replace('.jpg', '');
+                console.log('*** 在庫減少処理開始 ***');
+                console.log('景品キー:', prizeKey);
+                
+                // 最新の景品設定を再取得
+                const currentPrizeSettings = getPrizeSettings();
+                console.log('現在の景品設定:', currentPrizeSettings);
+                
+                const prizeItems = currentPrizeSettings[prizeKey] || [];
+                console.log('該当する景品一覧:', prizeItems);
+                
+                // 在庫がある景品を探す
+                const availableIndexes = [];
+                prizeItems.forEach((item, index) => {
+                    if (item.remainingCount > 0) {
+                        availableIndexes.push(index);
+                        console.log(`在庫あり: インデックス${index} - ${item.name} (残り${item.remainingCount}個)`);
+                    }
+                });
+                
+                if (availableIndexes.length > 0) {
+                    // ランダムに選択
+                    const randomIndex = availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
+                    const selectedItem = currentPrizeSettings[prizeKey][randomIndex];
+                    
+                    console.log(`選択された景品: インデックス${randomIndex} - ${selectedItem.name}`);
+                    console.log('減少前の残り個数:', selectedItem.remainingCount);
+                    
+                    resultText = `${result.text}\n${selectedItem.name}`;
+                    selectedPrize = { name: selectedItem.name, remainingCount: selectedItem.remainingCount };
+                    
+                    // 直接減らす
+                    currentPrizeSettings[prizeKey][randomIndex].remainingCount--;
+                    console.log('減少後の残り個数:', currentPrizeSettings[prizeKey][randomIndex].remainingCount);
+                    
+                    // 統一された保存処理を使用
+                    console.log('*** 統一保存処理開始 ***');
+                    const saveSuccess = savePrizeSettingsData(currentPrizeSettings);
+                    
+                    if (saveSuccess) {
+                        console.log('*** 保存成功 ***');
+                        
+                        // 再取得して確認
+                        const verification = getPrizeSettings();
+                        const verifyItem = verification[prizeKey][randomIndex];
+                        console.log('*** 保存確認 ***');
+                        console.log(`${verifyItem.name}の保存後残り個数:`, verifyItem.remainingCount);
+                        
+                        // selectedPrizeを更新
+                        selectedPrize.remainingCount = verifyItem.remainingCount;
+                    } else {
+                        console.error('*** 保存失敗 ***');
+                    }
+                    
+                                    // 管理画面更新（強制的に実行）
+                setTimeout(() => {
+                    forceRefreshAdmin();
+                }, 100);
+                } else {
+                    console.log('在庫がある景品がありません');
+                }
+            } else {
+                console.log('ハズレのため景品処理をスキップ');
+            }
+            
+            console.log('=== 景品処理終了 ===');
+            
+            // 抽選記録を更新（景品名も含めて）
+            console.log('抽選記録を更新中...', {
+                participant: currentParticipant,
+                result: result,
+                selectedPrize: selectedPrize
+            });
+            recordDraw(currentParticipant, result, selectedPrize);
+            console.log('抽選記録更新完了');
+            
+            // 結果を表示
+            const resultTextElement = document.getElementById('result-text');
+            resultTextElement.innerHTML = resultText.replace('\n', '<br>');
+            
+            // ハズレの場合は囲み線を削除
+            if (result.image === 'hazure.jpg') {
+                resultTextElement.classList.add('result-miss-text');
+            } else {
+                resultTextElement.classList.remove('result-miss-text');
+            }
+            
+            const resultImageElement = document.getElementById('result-image');
+            // 特別賞の場合は画像を非表示
+            if (result.image === 'special.jpg') {
+                resultImageElement.style.display = 'none';
+            } else {
+                resultImageElement.style.display = '';
+                resultImageElement.src = result.image;
+            }
+            
+            // 当たりの場合は参加者情報を表示
+            const winnerInfo = document.getElementById('winner-info');
+            if (result.image !== 'hazure.jpg') {
+                winnerInfo.innerHTML = `当選者: ${currentParticipant}`;
+                winnerInfo.style.display = 'block';
+                startCelebration();
+            } else {
+                winnerInfo.style.display = 'none';
+            }
+            
+            // 画面を切り替え
+            document.getElementById('confirm-screen').style.display = 'none';
+            document.getElementById('drumroll-screen').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+        }
+
+        function startDrumroll(result) {
+            // 確定演出画面を表示
+            document.getElementById('confirm-screen').style.display = 'none';
+            document.getElementById('drumroll-screen').style.display = 'block';
+            
+            // 3秒のカウントダウン
+            let countdown = 3;
+            const countdownDisplay = document.getElementById('countdown-display');
+            
+            const countdownInterval = setInterval(() => {
+                countdownDisplay.textContent = countdown;
+                
+                // 数字ごとに異なるクラスを追加
+                countdownDisplay.className = 'countdown';
+                if (countdown === 3) {
+                    countdownDisplay.classList.add('countdown-3');
+                } else if (countdown === 2) {
+                    countdownDisplay.classList.add('countdown-2');
+                } else if (countdown === 1) {
+                    countdownDisplay.classList.add('countdown-1');
+                }
+                
+                countdown--;
+                
+                if (countdown < 0) {
+                    clearInterval(countdownInterval);
+                    // カウントダウン終了後、結果を表示
+                    drawResult(result);
+                }
+            }, 1000);
+        }
+
+        function updateStatusDisplay(participantId) {
+            const drawCounter = document.getElementById('draw-counter');
+            const stats = getParticipantStats(participantId);
+            const history = getHistory();
+            const participant = history[participantId] || { totalCount: 0, dates: [], won5th: false, hasWon: false };
+            const participantClass = getParticipantClass(participantId);
+            
+            // 既存のデータの互換性を保つため、hasWonプロパティがない場合は追加
+            if (participant.hasWon === undefined) {
+                participant.hasWon = false;
+            }
+            
+            let canProceed = stats.canDrawToday && stats.canDrawTotal;
+            
+            // 無制限クラスの場合は当選済みでも引き続ける（5回制限内で）
+            if (CLASS_RESTRICTIONS.unlimited.includes(participantClass)) {
+                // 5回制限は適用するが、当選済みでも引ける
+                canProceed = stats.canDrawTotal;
+            } else {
+                // 3Aと6S以外のクラスで既に当選済みの場合は、引けない
+                if (!['3A', '6S'].includes(participantClass) && participant.hasWon) {
+                    canProceed = false;
+                }
+            }
+            
+            // 回数表示を目立つように更新
+            let counterClass = 'draw-counter';
+            let counterText = '';
+            
+            if (!stats.canDrawTotal) {
+                counterClass += ' warning';
+                counterText = `<div class="count-numbers">最大回数に達しました</div><div>引いた回数: ${stats.totalCount}/${MAX_TOTAL_DRAWS}</div>`;
+            } else if (!stats.canDrawToday) {
+                counterClass += ' limited';
+                counterText = `<div class="count-numbers">あと${stats.daysToWait}日待ってね</div><div>引いた回数: ${stats.totalCount}/${MAX_TOTAL_DRAWS}</div>`;
+            } else if (!CLASS_RESTRICTIONS.unlimited.includes(participantClass) && !['3A', '6S'].includes(participantClass) && participant.hasWon) {
+                counterClass += ' limited';
+                counterText = `<div class="count-numbers">既に当選済み</div><div>引いた回数: ${stats.totalCount}/${MAX_TOTAL_DRAWS}</div>`;
+            } else {
+                counterText = `<div class="count-numbers">残り<span class="remaining-count">${stats.remainingCount}</span>回</div><div>引いた回数: ${stats.totalCount}/${MAX_TOTAL_DRAWS}</div>`;
+            }
+            
+            drawCounter.className = counterClass;
+            drawCounter.innerHTML = counterText;
+            drawCounter.style.display = 'block';
+            
+            const submitBtn = document.querySelector('.code-submit-btn');
+            submitBtn.disabled = !canProceed;
+            
+            return canProceed;
+        }
+
+        function submitCode() {
+            const classSelect = document.getElementById('participant-class');
+            const codeSelect = document.getElementById('participant-code');
+            const selectedClass = classSelect.value;
+            const selectedCode = codeSelect.value;
+            
+            if (selectedClass === '') {
+                alert('クラスを選択してください');
+                return;
+            }
+            
+            if (selectedCode === '') {
+                alert('番号を選択してください');
+                return;
+            }
+            
+            // 参加者情報を保存（クラス・番号の形式）
+            currentParticipant = `${selectedClass}・${selectedCode}`;
+            
+            // 制限チェック
+            if (!updateStatusDisplay(currentParticipant)) {
+                return;
+            }
+            
+            document.getElementById('participant-info').textContent = `参加者: ${currentParticipant}`;
+            
+            // くじ画面に移動
+            document.getElementById('code-screen').style.display = 'none';
+            document.getElementById('kuji-screen').style.display = 'block';
+            
+            // くじを生成
+            generateKuji();
+        }
+
+        function startCelebration() {
+            // 既存の演出を削除
+            const existingCelebration = document.getElementById('celebration');
+            if (existingCelebration) {
+                existingCelebration.remove();
+            }
+            
+            // 祝福演出コンテナを作成
+            const celebration = document.createElement('div');
+            celebration.id = 'celebration';
+            celebration.className = 'celebration';
+            document.body.appendChild(celebration);
+            
+            // 紙吹雪を時間差で生成（最初の大量生成）
+            for (let i = 0; i < 150; i++) {
+                setTimeout(() => {
+                    createConfetti(celebration);
+                }, i * 100); // 100ms間隔で生成
+            }
+            
+            // 継続的に紙吹雪を生成（追加分）
+            const continuousConfetti = setInterval(() => {
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        createConfetti(celebration);
+                    }, i * 100);
+                }
+            }, 1000); // 1秒ごとに5個ずつ追加
+            
+            // 4秒後に継続生成を停止
+            setTimeout(() => {
+                clearInterval(continuousConfetti);
+            }, 4000);
+            
+            // キラキラを生成
+            for (let i = 0; i < 30; i++) {
+                createSparkle(celebration);
+            }
+            
+            // 5秒後に演出を削除
+            setTimeout(() => {
+                if (celebration && celebration.parentNode) {
+                    celebration.remove();
+                }
+            }, 5000);
+        }
+        
+        function createConfetti(container) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDuration = (Math.random() * 1 + 2) + 's';
+            
+            // ランダムなサイズ（8px〜16px）
+            const size = Math.random() * 8 + 8;
+            confetti.style.width = size + 'px';
+            confetti.style.height = size + 'px';
+            
+            container.appendChild(confetti);
+        }
+        
+        function createSparkle(container) {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.style.left = Math.random() * 100 + '%';
+            sparkle.style.top = Math.random() * 100 + '%';
+            sparkle.style.animationDelay = Math.random() * 2 + 's';
+            // ランダムに★または☆を表示
+            sparkle.textContent = Math.random() > 0.5 ? '★' : '☆';
+            
+            // 青緑系の色をランダムに選択
+            const colors = ['#00d2b8', '#00b8aa', '#1dd1a1', '#00cec9', '#00b894'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            sparkle.style.color = color;
+            
+            container.appendChild(sparkle);
+        }
+
+        function resetGame() {
+            // 既存の演出を削除
+            const existingCelebration = document.getElementById('celebration');
+            if (existingCelebration) {
+                existingCelebration.remove();
+            }
+            
+            // くじ画面をリセット
+            document.getElementById('kuji-container').innerHTML = '';
+            document.getElementById('code-screen').style.display = 'block';
+            document.getElementById('kuji-screen').style.display = 'none';
+            document.getElementById('confirm-screen').style.display = 'none';
+            document.getElementById('drumroll-screen').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'none';
+            
+            // カウントダウンをリセット
+            document.getElementById('countdown-display').textContent = '';
+            
+            // 勝者情報をリセット
+            document.getElementById('winner-info').style.display = 'none';
+            
+            // 参加者情報をリセット
+            currentParticipant = null;
+            document.getElementById('participant-class').value = '';
+            document.getElementById('participant-code').value = '';
+            document.getElementById('participant-info').textContent = '';
+            
+            // ステータス表示をリセット
+            document.getElementById('draw-counter').style.display = 'none';
+            document.querySelector('.code-submit-btn').disabled = false;
+        }
+
+        // クラス選択に応じて番号の選択肢を更新
+        function updateNumberOptions() {
+            const classSelect = document.getElementById('participant-class');
+            const codeSelect = document.getElementById('participant-code');
+            const selectedClass = classSelect.value;
+            
+            // クラスごとの番号範囲を定義
+            const classNumbers = {
+                "Kid'sゼミ": 20,
+                "パズル道場": 20,
+                "3J": 5,
+                "4S": 15,
+                "5S": 15,
+                "6S": 15,
+                "4H": 5,
+                "5H": 15,
+                "6H": 15,
+                "1A": 15,
+                "2A": 10,
+                "3A": 20
+            };
+            
+            // 番号選択肢をクリア
+            codeSelect.innerHTML = '<option value="">番号を選択</option>';
+            
+            if (selectedClass && classNumbers[selectedClass]) {
+                const maxNumber = classNumbers[selectedClass];
+                for (let i = 1; i <= maxNumber; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = i;
+                    codeSelect.appendChild(option);
+                }
+            }
+        }
+
+        // ページ読み込み時に初期化
+        window.addEventListener('load', () => {
+            // 現在の日付を表示
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const day = now.getDate();
+            const dateString = `${year}年${month}月${day}日`;
+            document.getElementById('date-display').textContent = dateString;
+            
+            // フィールド変更時の制限チェック
+            function checkLimits() {
+                const classSelect = document.getElementById('participant-class');
+                const codeSelect = document.getElementById('participant-code');
+                
+                if (classSelect.value && codeSelect.value) {
+                    const participantId = `${classSelect.value}・${codeSelect.value}`;
+                    updateStatusDisplay(participantId);
+                } else {
+                    document.getElementById('draw-counter').style.display = 'none';
+                    document.querySelector('.code-submit-btn').disabled = false;
+                }
+            }
+            
+            // フィールド変更時のイベントリスナー
+            document.getElementById('participant-class').addEventListener('change', () => {
+                updateNumberOptions();
+                checkLimits();
+            });
+            document.getElementById('participant-code').addEventListener('change', checkLimits);
+            
+            // Enterキーで番号選択を処理
+            document.getElementById('participant-code').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    submitCode();
+                }
+            });
+            
+            // クラス選択でもEnterキーを有効化
+            document.getElementById('participant-class').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    submitCode();
+                }
+            });
+
+            // 確率設定の入力フィールドのイベントリスナー
+            const probabilityInputs = ['prob-special', 'prob-1tou', 'prob-2tou', 'prob-3tou', 'prob-4tou', 'prob-5tou', 'prob-hazure'];
+            probabilityInputs.forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('input', updateProbabilityTotal);
+                }
+            });
+        });
+
+                // ウィンドウサイズ変更時にくじを再配置
+        window.addEventListener('resize', () => {
+            if (document.getElementById('kuji-screen').style.display !== 'none') {
+                document.getElementById('kuji-container').innerHTML = '';
+                setTimeout(() => {
+                    generateKuji();
+                }, 100); // 少し遅延させてレイアウトを確定
+            }
+        });
+
+        // 管理画面を開く
+        function openAdminPanel() {
+            document.getElementById('admin-panel').style.display = 'flex';
+            loadAdminData();
+            
+            // 強制リフレッシュで最新データを表示
+            forceRefreshAdmin();
+            loadProbabilitySettings();
+        }
+
+        // 管理画面を閉じる
+        function closeAdminPanel() {
+            document.getElementById('admin-panel').style.display = 'none';
+        }
+
+        // 管理データを読み込み
+        function loadAdminData() {
+            const history = getHistory();
+            const adminData = document.getElementById('admin-data');
+            
+            if (Object.keys(history).length === 0) {
+                adminData.innerHTML = '<p>まだデータがありません。</p>';
+                return;
+            }
+
+            // 参加者をクラス・番号順にソート
+            const sortedParticipants = Object.keys(history).sort((a, b) => {
+                const [classA, numberA] = a.split('・');
+                const [classB, numberB] = b.split('・');
+                
+                // クラスの順序を定義
+                const classOrder = [
+                    "Kid'sゼミ", "パズル道場", "3J", 
+                    "4S", "5S", "6S", 
+                    "4H", "5H", "6H", 
+                    "1A", "2A", "3A"
+                ];
+                
+                const classIndexA = classOrder.indexOf(classA);
+                const classIndexB = classOrder.indexOf(classB);
+                
+                // クラスが異なる場合はクラス順で比較
+                if (classIndexA !== classIndexB) {
+                    return classIndexA - classIndexB;
+                }
+                
+                // 同じクラスの場合は番号順で比較
+                return parseInt(numberA) - parseInt(numberB);
+            });
+
+            let tableHTML = `
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>参加者</th>
+                            <th>1回目</th>
+                            <th>2回目</th>
+                            <th>3回目</th>
+                            <th>4回目</th>
+                            <th>5回目</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            sortedParticipants.forEach(participantId => {
+                const participant = history[participantId];
+                
+                // 当選履歴を取得（既存データの互換性を保つ）
+                const winHistory = participant.winHistory || [];
+                
+                tableHTML += `<tr><td>${participantId}</td>`;
+                
+                // 1回目から5回目まで
+                for (let i = 1; i <= 5; i++) {
+                    let cellContent = '-';
+                    let cellClass = '';
+                    
+                    if (i <= winHistory.length) {
+                        const result = winHistory[i - 1];
+                        if (result.prize === 'ハズレ') {
+                            cellContent = 'ハズレ';
+                            cellClass = 'result-miss';
+                        } else {
+                            // 景品名が記録されている場合は表示
+                            if (result.prizeName) {
+                                cellContent = `${result.prize}<br><small>${result.prizeName}</small>`;
+                            } else {
+                                cellContent = result.prize;
+                            }
+                            cellClass = 'result-win';
+                        }
+                    }
+                    
+                    tableHTML += `<td class="${cellClass}">${cellContent}</td>`;
+                }
+                
+                tableHTML += `</tr>`;
+            });
+
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+
+            adminData.innerHTML = tableHTML;
+        }
+
+
+
+        // 抽選履歴をクリア
+        function clearHistoryData() {
+            if (confirm('本当に抽選履歴をクリアしますか？この操作は取り消せません。\n（景品設定は残ります）')) {
+                localStorage.removeItem(STORAGE_KEY);
+                alert('抽選履歴をクリアしました。');
+                loadAdminData();
+            }
+        }
+
+        // 管理画面の外側をクリックしたら閉じる
+        document.getElementById('admin-panel').addEventListener('click', (e) => {
+            if (e.target.id === 'admin-panel') {
+                closeAdminPanel();
+            }
+        });
+    </script>
+</body>
+</html> 
